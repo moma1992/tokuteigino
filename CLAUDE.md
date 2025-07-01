@@ -4,19 +4,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**TOKUTEI Learning（トクテイ ラーニング）** - 特定技能試験学習支援アプリ
+**TOKUTEI Learning（トクテイ ラーニング）** - 特定技能試験学習支援ウェブアプリ
 
-A mobile learning app for foreign workers preparing for Japan's Specified Skills (特定技能) exam. The app enables teachers to upload PDFs and automatically generate practice questions with furigana support, while students can practice and track their progress.
+A web learning application for foreign workers preparing for Japan's Specified Skills (特定技能) exam. The app enables teachers to upload PDFs and automatically generate practice questions with furigana support, while students can practice and track their progress.
 
 ## Architecture
 
 ### Frontend
-- **React Native 0.76+** with New Architecture (Fabric Renderer + TurboModules)
-- **Expo SDK 52+** with TypeScript
-- **Expo Router v3** for file-based routing
-- **React Native Paper** or **NativeBase** for UI components
+- **React 18+** with TypeScript
+- **Vite** for build tooling and development server
+- **React Router v6** for routing
+- **Material-UI (MUI)** for UI components
 - **Zustand** for state management
-- **Hermes Engine** with React Compiler optimization
+- **React Query** for server state management
 
 ### Backend
 - **FastAPI** with Vercel Functions
@@ -29,10 +29,10 @@ A mobile learning app for foreign workers preparing for Japan's Specified Skills
 - **OpenAI GPT-4o/GPT-4o-mini** for question generation
 - **Supabase Vector (pgvector)** + OpenAI Embeddings for RAG
 - **PyPDF2** for PDF text extraction
-- **Expo Speech** for text-to-speech functionality
+- **Web Speech API** for text-to-speech functionality
 
 ### Payment
-- **Stripe** subscription integration with React Native
+- **Stripe** subscription integration with React
 
 ## Database Schema
 
@@ -52,14 +52,14 @@ Key tables:
 # Install dependencies
 npm install
 
-# Start Expo development server
-npx expo start
+# Start Vite development server
+npm run dev
 
-# Run on iOS simulator
-npx expo run:ios
+# Build for production
+npm run build
 
-# Run on Android emulator
-npx expo run:android
+# Preview production build
+npm run preview
 ```
 
 ### Database
@@ -89,7 +89,7 @@ npm run test:e2e
 ### Build & Deploy
 ```bash
 # Build for production
-npx expo build
+npm run build
 
 # Deploy to Vercel
 vercel deploy
@@ -115,38 +115,38 @@ npx supabase functions deploy
 ## Development Guidelines
 
 ### File Structure
-- `/app` - Expo Router pages
-- `/components` - Reusable UI components
-- `/lib` - Utility functions and API clients
-- `/types` - TypeScript type definitions
+- `/src/pages` - React Router pages
+- `/src/components` - Reusable UI components
+- `/src/lib` - Utility functions and API clients
+- `/src/types` - TypeScript type definitions
 - `/supabase` - Database functions and migrations
 
 ### Coding Standards
 - Use TypeScript for all code
-- Follow React Native best practices
+- Follow React best practices
 - Implement proper error handling
 - Use React 18 Concurrent Features
-- Optimize for New Architecture performance
+- Optimize for web performance with Vite
 
 ### Localization
 - Primary language: Japanese (with furigana)
 - UI languages: Japanese, English, Chinese, Vietnamese
-- Use expo-localization for internationalization
+- Use react-i18next for internationalization
 
 ## MVP Implementation Phases
 
 ### Phase 1 (2 months)
-- React Native 0.76+ setup with New Architecture
+- React + Vite setup with TypeScript
 - Supabase authentication and database
 - PDF upload and vectorization
 - GPT-4o question generation
-- Furigana support with audio
+- Furigana support with Web Speech API
 - Stripe payment integration
 
 ### Phase 2 (1 month)
 - RAG-based similar question generation
-- Offline learning with AsyncStorage
-- Push notifications
+- Offline learning with localStorage
+- Web push notifications
 - Learning analytics dashboard
 - Real-time progress sharing
 
@@ -207,11 +207,11 @@ npm run test:e2e:android
 
 ### Component Testing Strategy
 
-#### React Native Component Testing
-- Use React Native Testing Library for component testing
+#### React Component Testing
+- Use React Testing Library for component testing
 - Focus on user interactions rather than implementation details
 - Test component props, state changes, and user events
-- Mock navigation and external dependencies
+- Mock React Router navigation and external dependencies
 
 #### AI/LLM Feature Testing
 - **Mock OpenAI API calls** to avoid costs and delays in tests
@@ -274,9 +274,9 @@ tests/
 
 #### Mocking Strategy
 - **External APIs**: Mock OpenAI, Stripe, third-party services
-- **Navigation**: Mock Expo Router navigation
-- **Storage**: Mock AsyncStorage for offline functionality
-- **Native modules**: Mock camera, speech, notifications
+- **Navigation**: Mock React Router navigation
+- **Storage**: Mock localStorage for offline functionality
+- **Web APIs**: Mock Web Speech API, File API, notifications
 
 ### CI/CD Integration
 
@@ -303,7 +303,7 @@ npm run build
 
 1. **Confidence in AI Integration**: Ensure question generation works correctly
 2. **Database Reliability**: Validate complex queries and RLS policies
-3. **Mobile Performance**: Catch performance regressions early
+3. **Web Performance**: Catch performance regressions early
 4. **Feature Quality**: Maintain high standards for learning features
 5. **Refactoring Safety**: Enable confident code improvements
 
@@ -331,31 +331,36 @@ npm run build
 
 ```bash
 # Initial setup (first time only)
-./scripts/dev.sh setup
+make setup
 
 # Start development environment
 make dev
 # or
-./scripts/dev.sh start
+make up
 
 # Stop environment
 make down
-# or
-./scripts/dev.sh stop
 ```
 
 ### Docker Services
 
 #### Core Services
-- **Frontend**: React Native + Expo (Port: 19000)
+- **Frontend**: React + Vite (Port: 5173)
 - **Backend**: FastAPI + Python (Port: 8000)
 - **Database**: PostgreSQL 15 (Port: 5432)
 - **Cache**: Redis 7 (Port: 6379)
-- **Proxy**: Nginx (Port: 80)
+- **Proxy**: Nginx (Port: 80, 443)
 
 #### Development Tools
 - **pgAdmin**: Database management (Port: 5050)
-- **Supabase**: Local Supabase instance (Port: 54321)
+- **Supabase**: Local Supabase instance (Port: 54322)
+
+#### Test Environment
+- **postgres-test**: Test database (Port: 5433)
+- **redis-test**: Test cache (Port: 6380)
+- **backend-test**: API testing with pytest + coverage
+- **frontend-test**: Component testing with Jest
+- **e2e-test**: End-to-end testing with Playwright
 
 ### Development Commands
 
@@ -450,11 +455,11 @@ make supabase-reset
 
 ### Container Architecture
 
-#### Frontend Container (React Native + Expo)
+#### Frontend Container (React + Vite)
 - **Base Image**: node:18-alpine
-- **Ports**: 8081, 19000-19002
+- **Ports**: 5173
 - **Volumes**: Hot reload support
-- **Features**: Expo CLI, Android tools, health checks
+- **Features**: Vite dev server, TypeScript support, health checks
 
 #### Backend Container (FastAPI + Python)
 - **Base Image**: python:3.11-slim
@@ -482,11 +487,12 @@ STRIPE_SECRET_KEY=sk_test_your-stripe-key
 ```
 
 #### Development URLs
-- **Frontend**: http://localhost:19000
+- **Frontend**: http://localhost:5173
 - **Backend API**: http://localhost:8000
 - **API Docs**: http://localhost:8000/docs
-- **pgAdmin**: http://localhost:5050
-- **Supabase Studio**: http://localhost:54323
+- **pgAdmin**: http://localhost:5050 (admin@example.com / admin)
+- **Supabase**: http://localhost:54322
+- **Nginx Proxy**: http://localhost:80
 
 ### Testing Strategy in Docker
 
@@ -503,7 +509,7 @@ STRIPE_SECRET_KEY=sk_test_your-stripe-key
 - Service communication
 
 #### E2E Tests
-- Full application workflows
+- Full web application workflows
 - Browser automation with Playwright
 - Cross-service testing
 - User journey validation
