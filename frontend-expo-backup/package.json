@@ -1,0 +1,39 @@
+{
+  "name": "tokuteigino-frontend",
+  "version": "1.0.0",
+  "description": "TOKUTEI Learning Frontend",
+  "main": "App.js",
+  "scripts": {
+    "start": "expo start",
+    "start:dev": "expo start --dev-client",
+    "start:tunnel": "expo start --tunnel",
+    "build": "expo build",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "format": "prettier --write .",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "expo": "~52.0.0",
+    "react": "18.3.1",
+    "react-native": "0.76.9",
+    "expo-status-bar": "~2.0.0",
+    "react-native-web": "~0.19.13"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.25.0",
+    "@types/react": "~18.3.0",
+    "typescript": "~5.3.3"
+  },
+  "private": true,
+  "jest": {
+    "preset": "jest-expo",
+    "collectCoverageFrom": [
+      "**/*.{js,jsx,ts,tsx}",
+      "!**/*.d.ts",
+      "!**/node_modules/**"
+    ]
+  }
+}

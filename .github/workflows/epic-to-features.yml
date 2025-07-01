@@ -1,0 +1,152 @@
+name: Epic to Feature Issues Generator
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: read
+
+jobs:
+  create-feature-issues:
+    runs-on: ubuntu-latest
+    if: |
+      github.event.issue.state == 'open' && 
+      contains(github.event.comment.body, '@claude create features from epic')
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Get Epic Issue Details
+      id: epic-details
+      run: |
+        echo "issue_number=${{ github.event.issue.number }}" >> $GITHUB_OUTPUT
+        echo "issue_title=${{ github.event.issue.title }}" >> $GITHUB_OUTPUT
+
+    - name: Ensure Feature Label Exists
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        # feature ラベルが存在しない場合は作成
+        if ! gh label list | grep -q "^feature"; then
+          echo "Creating 'feature' label..."
+          gh label create feature --description "New feature implementation" --color "28a745" || true
+        else
+          echo "Feature label already exists"
+        fi
+
+    - name: Create Feature Issues
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        EPIC_NUMBER: ${{ steps.epic-details.outputs.issue_number }}
+      run: |
+        echo "🚀 Creating Feature Issues for Epic #$EPIC_NUMBER..."
+        
+        if [ "$EPIC_NUMBER" = "2" ]; then
+          echo "📋 Creating CI/CD Epic Features..."
+          
+          # 作成したIssue番号を保存する配列
+          CREATED_ISSUES=()
+          
+          # Feature 1: CI/CDパイプライン設定
+          echo "Creating CI/CD Pipeline Issue..."
+          ISSUE1_URL=$(gh issue create \
+            --title "[FEAT] CI/CDパイプライン設定" \
+            --body-file .github/issue-templates/ci-cd-pipeline.md \
+            --label "feature")
+          CREATED_ISSUES+=("$ISSUE1_URL")
+          
+          # Feature 2: プロジェクト基本構造構築
+          echo "Creating Project Structure Issue..."
+          ISSUE2_URL=$(gh issue create \
+            --title "[FEAT] プロジェクト基本構造構築" \
+            --body-file .github/issue-templates/project-structure.md \
+            --label "feature")
+          CREATED_ISSUES+=("$ISSUE2_URL")
+          
+          # Feature 3: 依存関係とコード品質設定
+          echo "Creating Dependencies Issue..."
+          ISSUE3_URL=$(gh issue create \
+            --title "[FEAT] 依存関係とコード品質設定" \
+            --body-file .github/issue-templates/dependencies-quality.md \
+            --label "feature")
+          CREATED_ISSUES+=("$ISSUE3_URL")
+          
+          # Feature 4: テストフレームワーク設定
+          echo "Creating Test Framework Issue..."
+          ISSUE4_URL=$(gh issue create \
+            --title "[FEAT] テストフレームワーク設定" \
+            --body-file .github/issue-templates/test-framework.md \
+            --label "feature")
+          CREATED_ISSUES+=("$ISSUE4_URL")
+          
+          # Feature 5: 外部サービスモック環境構築
+          echo "Creating Mock Environment Issue..."
+          ISSUE5_URL=$(gh issue create \
+            --title "[FEAT] 外部サービスモック環境構築" \
+            --body-file .github/issue-templates/mock-environment.md \
+            --label "feature")
+          CREATED_ISSUES+=("$ISSUE5_URL")
+          
+          echo "✅ Created ${#CREATED_ISSUES[@]} Feature Issues"
+          for issue in "${CREATED_ISSUES[@]}"; do
+            echo "- $issue"
+          done
+          
+        elif [ "$EPIC_NUMBER" = "3" ]; then
+          echo "📋 Creating RAG Implementation Epic Features..."
+          echo "⚠️  RAG Epic features will be implemented in future version"
+          
+        else
+          echo "⚠️  Unknown Epic number: $EPIC_NUMBER"
+          exit 1
+        fi
+
+    - name: Comment on Epic Issue
+      if: success()
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        gh issue comment ${{ github.event.issue.number }} \
+          --body "✅ **Feature Issues作成完了**
+
+        Epic #${{ github.event.issue.number }} から5つのFeature Issueを自動作成しました：
+        
+        📋 **作成されたFeatures:**
+        1. **[FEAT] CI/CDパイプライン設定** - GitHub Actions ワークフロー
+        2. **[FEAT] プロジェクト基本構造構築** - ディレクトリ構造と設定
+        3. **[FEAT] 依存関係とコード品質設定** - requirements と品質ツール
+        4. **[FEAT] テストフレームワーク設定** - pytest環境構築  
+        5. **[FEAT] 外部サービスモック環境構築** - API モック設定
+        
+        🚀 **次のステップ:**
+        1. 各Feature Issueの内容確認・調整
+        2. 開発優先順位の決定  
+        3. Claude Code Actionでの実装開始
+        
+        💡 **推奨実装順序:**
+        プロジェクト構造 → 依存関係 → テスト環境 → CI/CD → モック環境
+        
+        ---
+        🤖 *GitHub Actions で自動生成*"
+
+    - name: Handle Failure
+      if: failure()
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        gh issue comment ${{ github.event.issue.number }} \
+          --body "❌ **Feature Issues作成エラー**
+
+        Epic #${{ github.event.issue.number }} からのFeature Issue自動作成に失敗しました。
+        
+        🔧 **対処方法:**
+        1. GitHub Actions ログで詳細エラーを確認
+        2. 手動でFeature Issueを作成
+        3. ワークフロー修正後に再実行
+        
+        ---
+        🤖 *GitHub Actions エラー通知*"

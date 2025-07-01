@@ -1,0 +1,99 @@
+name: Claude Code
+
+on:
+  issue_comment:
+    types: [created]
+  pull_request_review_comment:
+    types: [created]
+  issues:
+    types: [opened, assigned]
+  pull_request_review:
+    types: [submitted]
+
+jobs:
+  claude:
+    if: |
+      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
+      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
+      (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@claude')) ||
+      (github.event_name == 'issues' && (contains(github.event.issue.body, '@claude') || contains(github.event.issue.title, '@claude')))
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      id-token: write
+      actions: read
+      checks: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          token: ${{ secrets.GITHUB_TOKEN }}
+          persist-credentials: true
+
+      - name: Run Claude Code
+        id: claude
+        uses: anthropics/claude-code-action@beta
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          
+          # Use Claude Sonnet 4 (default, but explicit)
+          model: "claude-sonnet-4-20250514"
+          
+          # Customize the trigger phrase (default: @claude)
+          trigger_phrase: "@claude"
+          
+          # Allow Claude to run specific commands for Python projects and GitHub operations
+          allowed_tools: |
+            Bash(python -m pytest)
+            Bash(python -m pytest tests/)
+            Bash(black .)
+            Bash(flake8 .)
+            Bash(mypy .)
+            Bash(pip install -r requirements.txt)
+            Bash(pip install -r requirements-dev.txt)
+            mcp__github__create_pull_request
+            mcp__github__create_branch
+            mcp__github__push_files
+            mcp__github__get_file
+            mcp__github__search_repositories
+            mcp__github__create_or_update_file_contents
+            mcp__github__create_issue
+          
+          # Custom instructions for RAG application development
+          custom_instructions: |
+            このプロジェクトは新入社員向け社内文書検索RAGアプリケーションです。以下のガイドラインに従ってください：
+            
+            ## 開発方針
+            - TDD(Test Driven Development)を必ず適用してください
+            - 型ヒント(Type Hints)を必須で追加してください
+            - ドックストリングをGoogle形式で記述してください
+            - エラーメッセージは日本語で分かりやすく記述してください
+            - 外部API(OpenAI, Claude, Supabase)は必ずモックでテストしてください
+            
+            ## コード品質
+            - Black, Flake8, mypyの品質チェックを通過するコードを書いてください
+            - セキュリティベストプラクティスに従ってください
+            - Streamlit Cloud Community制約(1GB メモリ)を考慮してください
+            
+            ## 実装順序
+            1. まずテストケースを作成(Red)
+            2. 最小限の実装でテストを通す(Green)  
+            3. コードを改善・リファクタリング(Refactor)
+            
+            ## ファイル構造
+            CLAUDE.mdに記載されたアーキテクチャに従ってください
+            
+            ## PR作成について
+            - 実装完了後は mcp__github__create_pull_request ツールを使用してPull Requestを作成してください
+            - PRのタイトルにはIssue番号を含めてください（例: feat: CI/CDパイプライン実装 (#5)）
+            - PR説明にはIssueの要件との対応を明記してください
+            - ブランチ作成には mcp__github__create_branch ツールを使用してください
+            - ファイル作成・更新には mcp__github__create_or_update_file_contents を使用してください
+          
+          # Optional: Custom environment variables for Claude
+          # claude_env: |
+          #   NODE_ENV: test
+
