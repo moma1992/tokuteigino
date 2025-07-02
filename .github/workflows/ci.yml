@@ -48,11 +48,16 @@ jobs:
       working-directory: backend
       run: |
         if [ -f "pyproject.toml" ]; then
-          # Use Poetry to export requirements for safety check
-          pip install poetry
-          poetry export --format=requirements.txt --output=requirements.txt --without-hashes || echo "Poetry export failed, skipping safety check"
-          if [ -f "requirements.txt" ]; then
+          # Install Poetry and export requirements for safety check
+          pip install poetry tomli
+          poetry export --format=requirements.txt --output=requirements.txt --without-hashes --dev || echo "Poetry export failed, trying without dev dependencies"
+          if [ ! -f "requirements.txt" ]; then
+            poetry export --format=requirements.txt --output=requirements.txt --without-hashes || echo "Poetry export failed completely"
+          fi
+          if [ -f "requirements.txt" ] && [ -s "requirements.txt" ]; then
             safety check --file requirements.txt || echo "Safety check completed with warnings"
+          else
+            echo "No requirements.txt generated or file is empty, skipping safety check"
           fi
         else
           echo "No pyproject.toml found, skipping safety check"

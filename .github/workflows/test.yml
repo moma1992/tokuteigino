@@ -159,62 +159,9 @@ jobs:
         POSTGRES_INITDB_ARGS=--auth-host=trust
         EOF
 
-    - name: Create lightweight docker-compose for testing
+    - name: Validate test docker-compose configuration
       run: |
-        cat > docker-compose.test.yml << EOF
-        version: '3.8'
-        services:
-          postgres:
-            image: postgres:15-alpine
-            environment:
-              POSTGRES_DB: tokuteigino_test
-              POSTGRES_USER: postgres
-              POSTGRES_PASSWORD: postgres
-              POSTGRES_INITDB_ARGS: --auth-host=trust
-            tmpfs:
-              - /var/lib/postgresql/data
-            command: >
-              postgres
-              -c shared_buffers=128MB
-              -c max_connections=20
-              -c log_min_messages=warning
-              -c log_min_error_statement=error
-            healthcheck:
-              test: ["CMD-SHELL", "pg_isready -U postgres"]
-              interval: 5s
-              timeout: 5s
-              retries: 5
-
-          redis:
-            image: redis:7-alpine
-            command: redis-server --save "" --appendonly no --maxmemory 100mb
-            healthcheck:
-              test: ["CMD", "redis-cli", "ping"]
-              interval: 5s
-              timeout: 5s
-              retries: 3
-
-          backend:
-            build:
-              context: ./backend
-              dockerfile: Dockerfile
-            environment:
-              - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/tokuteigino_test
-              - REDIS_URL=redis://redis:6379
-              - OPENAI_API_KEY=test-key-mock
-              - ENVIRONMENT=test
-            depends_on:
-              postgres:
-                condition: service_healthy
-              redis:
-                condition: service_healthy
-            healthcheck:
-              test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-              interval: 10s
-              timeout: 5s
-              retries: 3
-              start_period: 30s
-        EOF
+        docker-compose -f docker-compose.test.yml config
 
     - name: Build test containers
       run: |
@@ -234,15 +181,19 @@ jobs:
     - name: Wait for services to be ready
       run: |
         echo "Waiting for backend to be healthy..."
-        timeout 120s bash -c 'until docker-compose -f docker-compose.test.yml exec -T backend curl -f http://localhost:8000/health; do sleep 2; done'
+        # Wait for backend container to be running
+        timeout 60s bash -c 'until [ "$(docker-compose -f docker-compose.test.yml ps -q backend)" ]; do sleep 2; done'
+        
+        # Wait for health check to pass
+        timeout 120s bash -c 'until docker-compose -f docker-compose.test.yml exec -T backend curl -f http://localhost:8000/health; do sleep 5; done'
 
     - name: Run integration tests
       run: |
         echo "✅ Backend health check passed"
         docker-compose -f docker-compose.test.yml exec -T backend curl -f http://localhost:8000/health
         
-        echo "Running backend integration tests..."
-        docker-compose -f docker-compose.test.yml exec -T backend poetry run pytest tests/ -v -k "not unit" || echo "No integration tests found"
+        echo "Running all backend tests..."
+        docker-compose -f docker-compose.test.yml exec -T backend poetry run pytest tests/ -v --tb=short
 
     - name: Show container logs on failure
       if: failure()
