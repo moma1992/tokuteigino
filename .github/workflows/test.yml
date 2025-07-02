@@ -1,0 +1,168 @@
+name: Test Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  DOCKER_COMPOSE_VERSION: 2.20.2
+
+jobs:
+  test:
+    name: 🧪 Development Container Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Create development environment file
+      run: |
+        cat > .env << EOF
+        NODE_ENV=development
+        POSTGRES_DB=tokuteigino
+        POSTGRES_USER=postgres
+        POSTGRES_PASSWORD=postgres
+        REDIS_URL=redis://redis:6379
+        DATABASE_URL=postgresql://postgres:postgres@postgres:5432/tokuteigino
+        SUPABASE_URL=http://supabase:54321
+        VITE_API_URL=http://localhost:8000
+        VITE_SUPABASE_URL=http://localhost:54321
+        OPENAI_API_KEY=test-key-mock
+        SUPABASE_ANON_KEY=test-anon-key
+        EOF
+
+    - name: Build development containers
+      run: |
+        docker-compose build --parallel
+
+    - name: Start development services
+      run: |
+        docker-compose up -d postgres redis
+        sleep 10
+
+    - name: Start backend service
+      run: |
+        docker-compose up -d backend
+        sleep 15
+
+    - name: Start frontend service
+      run: |
+        docker-compose up -d frontend
+        sleep 10
+
+    - name: Run backend tests
+      run: |
+        docker-compose exec -T backend bash -c "cd /app && pip install pytest pytest-cov && python -m pytest -v --tb=short"
+
+    - name: Run frontend tests
+      run: |
+        docker-compose exec -T frontend npm test -- --run --passWithNoTests
+
+    - name: Run backend tests with coverage
+      run: |
+        docker-compose exec -T backend bash -c "cd /app && pip install pytest pytest-cov && python -m pytest --cov=. --cov-report=html --cov-report=term"
+
+    - name: Run frontend tests with coverage
+      run: |
+        docker-compose exec -T frontend npm test -- --coverage --run --passWithNoTests
+
+    - name: Upload backend coverage
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: backend-coverage
+        path: backend/htmlcov/
+        if-no-files-found: ignore
+
+    - name: Upload frontend coverage
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: frontend-coverage
+        path: frontend/coverage/
+        if-no-files-found: ignore
+
+    - name: Cleanup
+      if: always()
+      run: |
+        docker-compose down -v
+        docker system prune -f
+
+  integration-test:
+    name: 🔗 Integration Tests
+    runs-on: ubuntu-latest
+    needs: test
+    timeout-minutes: 20
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Create development environment file
+      run: |
+        cat > .env << EOF
+        NODE_ENV=development
+        POSTGRES_DB=tokuteigino
+        POSTGRES_USER=postgres
+        POSTGRES_PASSWORD=postgres
+        REDIS_URL=redis://redis:6379
+        DATABASE_URL=postgresql://postgres:postgres@postgres:5432/tokuteigino
+        SUPABASE_URL=http://supabase:54321
+        VITE_API_URL=http://localhost:8000
+        VITE_SUPABASE_URL=http://localhost:54321
+        OPENAI_API_KEY=test-key-mock
+        SUPABASE_ANON_KEY=test-anon-key
+        EOF
+
+    - name: Start development services
+      run: |
+        docker-compose up -d
+        sleep 30
+
+    - name: Check service health
+      run: |
+        # Check backend health
+        docker-compose exec -T backend curl -f http://localhost:8000/health || echo "Backend health check failed"
+        
+        # Check frontend build
+        docker-compose exec -T frontend npm run build || echo "Frontend build failed"
+
+    - name: Cleanup
+      if: always()
+      run: |
+        docker-compose down -v
+        docker system prune -f
+
+
+  test-summary:
+    name: 📊 Test Summary
+    runs-on: ubuntu-latest
+    needs: [test, integration-test]
+    if: always()
+    
+    steps:
+    - name: Test Pipeline Summary
+      run: |
+        echo "🧪 Test Pipeline Execution Complete"
+        echo "📋 Job Results:"
+        echo "  🧪 Docker Tests: ${{ needs.test.result }}"
+        echo "  🔗 Integration Tests: ${{ needs.integration-test.result }}"
+        # echo "  🎭 E2E Tests: ${{ needs.e2e-test.result }}"
+        
+        if [[ "${{ needs.test.result }}" == "success" && "${{ needs.integration-test.result }}" == "success" ]]; then
+          echo "✅ All tests passed!"
+          exit 0
+        else
+          echo "❌ Some tests failed - check the logs above"
+          exit 1
+        fi

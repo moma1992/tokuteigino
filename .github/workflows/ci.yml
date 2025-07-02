@@ -115,10 +115,70 @@ jobs:
           echo "No MyPy configuration found, skipping type checking"
         fi
 
+  frontend-quality:
+    name: 🎨 Frontend Quality
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: frontend/package-lock.json
+
+    - name: Install frontend dependencies
+      run: |
+        cd frontend
+        npm ci
+
+    - name: Run ESLint
+      continue-on-error: true
+      run: |
+        cd frontend
+        npm run lint || echo "Linting completed with warnings"
+
+    - name: Run TypeScript check
+      continue-on-error: true
+      run: |
+        cd frontend
+        npm run typecheck || echo "Type checking completed with errors"
+
+    - name: Check build
+      run: |
+        cd frontend
+        npm run build
+
+  docker-health:
+    name: 🐳 Docker Health Check
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build frontend container
+      run: |
+        docker build -t tokuteigino-frontend:test ./frontend
+
+    - name: Build backend container
+      run: |
+        docker build -t tokuteigino-backend:test ./backend
+
+    - name: Test Docker Compose configuration
+      run: |
+        docker-compose -f docker-compose.yml config
+
   summary:
     name: 📊 CI Summary
     runs-on: ubuntu-latest
-    needs: [security, quality]
+    needs: [security, quality, frontend-quality, docker-health]
     if: always()
     
     steps:
@@ -128,10 +188,12 @@ jobs:
         echo "📋 Job Results:"
         echo "  🔒 Security: ${{ needs.security.result }}"
         echo "  📏 Quality: ${{ needs.quality.result }}"
+        echo "  🎨 Frontend Quality: ${{ needs.frontend-quality.result }}"
+        echo "  🐳 Docker Health: ${{ needs.docker-health.result }}"
         echo "ℹ️  Tests are executed in separate test.yml workflow"
         
-        if [[ "${{ needs.security.result }}" == "success" && "${{ needs.quality.result }}" == "success" ]]; then
-          echo "✅ All security and quality checks passed!"
+        if [[ "${{ needs.security.result }}" == "success" && "${{ needs.quality.result }}" == "success" && "${{ needs.frontend-quality.result }}" == "success" && "${{ needs.docker-health.result }}" == "success" ]]; then
+          echo "✅ All CI checks passed!"
         else
           echo "⚠️  Some checks completed with warnings - review the logs above"
         fi

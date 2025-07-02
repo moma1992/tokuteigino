@@ -128,6 +128,13 @@ npx supabase functions deploy
 - Use React 18 Concurrent Features
 - Optimize for web performance with Vite
 
+### Docker-First Development Policy
+- **MANDATORY**: All development, testing, and verification must be performed using Docker containers
+- **NO LOCAL EXECUTION**: Never run `npm install`, `npm test`, or any package commands directly on the host machine
+- **Container-Only Testing**: All tests must be executed via `make test`, `make test-backend`, `make test-frontend`, or similar Docker commands
+- **Environment Consistency**: Use `make dev` or `make up` for all development work to ensure consistent environments
+- **Package Management**: All dependency changes must be made within containers using `make shell-frontend` or `make shell-backend`
+
 ### Localization
 - Primary language: Japanese (with furigana)
 - UI languages: Japanese, English, Chinese, Vietnamese
