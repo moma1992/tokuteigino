@@ -59,19 +59,19 @@ jobs:
 
     - name: Run backend tests
       run: |
-        docker-compose exec -T backend bash -c "cd /app && pip install pytest pytest-cov && python -m pytest -v --tb=short"
+        docker-compose exec -T backend bash -c "cd /app && poetry install && poetry run pytest -v --tb=short"
 
     - name: Run frontend tests
       run: |
-        docker-compose exec -T frontend npm test -- --run --passWithNoTests
+        docker-compose exec -T frontend npm run test -- --run --passWithNoTests
 
     - name: Run backend tests with coverage
       run: |
-        docker-compose exec -T backend bash -c "cd /app && pip install pytest pytest-cov && python -m pytest --cov=. --cov-report=html --cov-report=term"
+        docker-compose exec -T backend bash -c "cd /app && poetry install && poetry run pytest --cov=. --cov-report=html --cov-report=term"
 
     - name: Run frontend tests with coverage
       run: |
-        docker-compose exec -T frontend npm test -- --coverage --run --passWithNoTests
+        docker-compose exec -T frontend npm run test:coverage -- --run --passWithNoTests
 
     - name: Upload backend coverage
       uses: actions/upload-artifact@v4
@@ -80,6 +80,16 @@ jobs:
         name: backend-coverage
         path: backend/htmlcov/
         if-no-files-found: ignore
+    
+    - name: Show service logs on failure
+      if: failure()
+      run: |
+        echo "=== Backend Logs ==="
+        docker-compose logs backend
+        echo "=== Frontend Logs ==="
+        docker-compose logs frontend
+        echo "=== PostgreSQL Logs ==="
+        docker-compose logs postgres
 
     - name: Upload frontend coverage
       uses: actions/upload-artifact@v4
@@ -131,11 +141,24 @@ jobs:
 
     - name: Check service health
       run: |
-        # Check backend health
-        docker-compose exec -T backend curl -f http://localhost:8000/health || echo "Backend health check failed"
+        # Wait for services to be ready
+        sleep 10
         
-        # Check frontend build
-        docker-compose exec -T frontend npm run build || echo "Frontend build failed"
+        # Check backend health
+        if docker-compose exec -T backend curl -f http://localhost:8000/health; then
+          echo "✅ Backend health check passed"
+        else
+          echo "❌ Backend health check failed"
+          docker-compose logs backend
+        fi
+        
+        # Check frontend is running
+        if docker-compose ps frontend | grep -q "Up"; then
+          echo "✅ Frontend service is running"
+        else
+          echo "❌ Frontend service failed"
+          docker-compose logs frontend
+        fi
 
     - name: Cleanup
       if: always()

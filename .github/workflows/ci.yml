@@ -128,29 +128,25 @@ jobs:
       with:
         node-version: '18'
         cache: 'npm'
-        cache-dependency-path: frontend/package-lock.json
+        cache-dependency-path: 'frontend/package-lock.json'
 
     - name: Install frontend dependencies
-      run: |
-        cd frontend
-        npm ci
+      working-directory: frontend
+      run: npm ci
 
     - name: Run ESLint
       continue-on-error: true
-      run: |
-        cd frontend
-        npm run lint || echo "Linting completed with warnings"
+      working-directory: frontend
+      run: npm run lint || echo "Linting completed with warnings"
 
     - name: Run TypeScript check
       continue-on-error: true
-      run: |
-        cd frontend
-        npm run typecheck || echo "Type checking completed with errors"
+      working-directory: frontend
+      run: npm run typecheck || echo "Type checking completed with errors"
 
     - name: Check build
-      run: |
-        cd frontend
-        npm run build
+      working-directory: frontend
+      run: npm run build
 
   docker-health:
     name: 🐳 Docker Health Check
@@ -171,6 +167,22 @@ jobs:
       run: |
         docker build -t tokuteigino-backend:test ./backend
 
+    - name: Create test environment file
+      run: |
+        cat > .env << EOF
+        NODE_ENV=development
+        POSTGRES_DB=tokuteigino
+        POSTGRES_USER=postgres
+        POSTGRES_PASSWORD=postgres
+        REDIS_URL=redis://redis:6379
+        DATABASE_URL=postgresql://postgres:postgres@postgres:5432/tokuteigino
+        SUPABASE_URL=http://supabase:54321
+        VITE_API_URL=http://localhost:8000
+        VITE_SUPABASE_URL=http://localhost:54321
+        OPENAI_API_KEY=test-key-mock
+        SUPABASE_ANON_KEY=test-anon-key
+        EOF
+    
     - name: Test Docker Compose configuration
       run: |
         docker-compose -f docker-compose.yml config
