@@ -578,3 +578,138 @@ docker network inspect tokuteigino_tokuteigino-network
 - **Helm charts** for deployment management
 - **Auto-scaling** based on load
 - **Rolling updates** with zero downtime
+
+## MCP (Model Context Protocol) Integration Strategy
+
+### Available MCP Tools
+
+This environment provides four key MCP tool sets that significantly enhance development capabilities:
+
+#### 1. IDE Integration (`mcp__ide__`)
+- **getDiagnostics**: Get language diagnostics from VS Code
+- **executeCode**: Execute Python code in Jupyter kernel
+
+**Usage Strategy:**
+- Use for real-time TypeScript/JavaScript error checking during development
+- Execute Python scripts for data processing and AI model testing
+- Validate code quality before commits
+
+#### 2. Supabase Operations (`mcp__supabase__`)
+- **Database Management**: Create/list/delete/merge branches, list tables/extensions/migrations
+- **SQL Operations**: Execute SQL, apply migrations, generate TypeScript types
+- **Monitoring**: Get logs, advisors, project URL, and API keys
+- **Edge Functions**: List and deploy Deno-based edge functions
+
+**Usage Strategy:**
+- **Development Branches**: Use for safe database schema changes and testing
+- **Schema Management**: Apply migrations and generate TypeScript types automatically
+- **Performance Monitoring**: Regular advisor checks for security and performance issues
+- **Edge Functions**: Deploy AI processing functions (question generation, furigana processing)
+
+#### 3. Library Documentation (`mcp__context7__`)
+- **resolve-library-id**: Resolve package names to Context7-compatible library IDs
+- **get-library-docs**: Fetch up-to-date library documentation
+
+**Usage Strategy:**
+- **Dependency Research**: Get latest documentation for React, FastAPI, Supabase libraries
+- **Feature Implementation**: Access current API documentation for MUI, Zustand, React Query
+- **Integration Guidance**: Get specific implementation examples for OpenAI, Stripe APIs
+
+#### 4. GitHub Repository Analysis (`mcp__deepwiki__`)
+- **read_wiki_structure**: Get documentation topics for repositories
+- **read_wiki_contents**: View repository documentation
+- **ask_question**: Ask specific questions about repositories
+
+**Usage Strategy:**
+- **Open Source Integration**: Analyze third-party libraries for integration patterns
+- **Best Practices**: Learn from similar projects (language learning apps, React/FastAPI projects)
+- **Troubleshooting**: Get specific answers about library usage and configuration
+
+### MCP-Enhanced Development Workflow
+
+#### 1. Feature Development with MCP
+```bash
+# 1. Research using Context7 for latest library docs
+# 2. Create Supabase development branch for schema changes
+# 3. Use IDE diagnostics for real-time error checking
+# 4. Execute Python code for AI/ML testing
+# 5. Deploy edge functions for serverless AI processing
+```
+
+#### 2. Database Schema Development
+```bash
+# Create development branch
+mcp__supabase__create_branch
+
+# Apply schema changes
+mcp__supabase__apply_migration
+
+# Generate TypeScript types
+mcp__supabase__generate_typescript_types
+
+# Check for security/performance issues
+mcp__supabase__get_advisors
+
+# Merge to production when ready
+mcp__supabase__merge_branch
+```
+
+#### 3. AI/ML Feature Development
+```bash
+# Test Python scripts for question generation
+mcp__ide__executeCode
+
+# Deploy edge functions for AI processing
+mcp__supabase__deploy_edge_function
+
+# Monitor performance and errors
+mcp__supabase__get_logs
+```
+
+#### 4. Library Integration Process
+```bash
+# Research latest documentation
+mcp__context7__resolve_library_id
+mcp__context7__get_library_docs
+
+# Analyze similar implementations
+mcp__deepwiki__ask_question
+
+# Validate implementation with diagnostics
+mcp__ide__getDiagnostics
+```
+
+### MCP Priority Usage Guidelines
+
+#### High Priority (Daily Use)
+1. **Supabase Operations**: Essential for database-driven development
+2. **IDE Diagnostics**: Continuous code quality assurance
+3. **Library Documentation**: Stay current with API changes
+
+#### Medium Priority (Weekly Use)
+1. **GitHub Analysis**: Research best practices and integration patterns
+2. **Code Execution**: Test AI/ML scripts and data processing
+
+#### Best Practices
+- **Always use Supabase advisors** after schema changes
+- **Generate TypeScript types** after database modifications
+- **Research library docs** before implementing new features
+- **Use development branches** for all database experiments
+- **Monitor edge function logs** for AI processing performance
+
+### Integration with Existing Workflow
+
+#### TDD Enhancement
+- Use `mcp__ide__executeCode` for testing AI model responses
+- Use `mcp__supabase__execute_sql` for database test setup
+- Use `mcp__ide__getDiagnostics` for continuous test validation
+
+#### Docker Development
+- MCP tools complement Docker-first development policy
+- Use Supabase MCP for database operations instead of direct CLI
+- Integrate MCP logging with Docker container monitoring
+
+#### AI Feature Development
+- Use `mcp__supabase__deploy_edge_function` for serverless AI processing
+- Use `mcp__context7__get_library_docs` for OpenAI API updates
+- Use `mcp__ide__executeCode` for testing question generation algorithms
