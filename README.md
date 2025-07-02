@@ -1,6 +1,6 @@
 # TOKUTEI Learning（トクテイ ラーニング）
 
-特定技能試験学習支援アプリ - A mobile learning app for foreign workers preparing for Japan's Specified Skills exam.
+特定技能試験学習支援ウェブアプリ - A web learning application for foreign workers preparing for Japan's Specified Skills exam.
 
 ## 🚀 Quick Start
 
@@ -188,21 +188,6 @@ REDIS_URL=redis://localhost:6379
 - ESLint/Prettier formatting
 - Type checking with mypy/tsc
 
-## 📱 Mobile Development
-
-### React Native Setup
-```bash
-# Install Expo CLI
-npm install -g @expo/cli
-
-# Start Expo development server
-cd frontend-expo-backup
-npx expo start
-
-# Run on iOS/Android
-npx expo run:ios
-npx expo run:android
-```
 
 ## 🔒 Security
 
