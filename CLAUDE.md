@@ -713,3 +713,50 @@ mcp__ide__getDiagnostics
 - Use `mcp__supabase__deploy_edge_function` for serverless AI processing
 - Use `mcp__context7__get_library_docs` for OpenAI API updates
 - Use `mcp__ide__executeCode` for testing question generation algorithms
+
+#### 5. Stripe Payment Integration (`mcp__stripe__`)
+- **Customer Management**: Create/list customers, manage profiles
+- **Product & Pricing**: Create products, set prices, manage subscription plans
+- **Payment Processing**: Create payment links, handle invoices, process refunds
+- **Subscription Management**: Create/update/cancel subscriptions, track billing cycles
+- **Analytics**: Retrieve balance, list payment intents, monitor transactions
+- **Dispute Handling**: Manage chargebacks and payment disputes
+- **Documentation**: Search Stripe API docs for integration guidance
+
+**Usage Strategy:**
+- **Subscription Setup**: Create products and prices for Free/Basic/Pro plans
+- **Customer Onboarding**: Handle user registration and payment method setup
+- **Billing Management**: Process recurring payments and handle subscription changes
+- **Revenue Tracking**: Monitor subscription revenue and payment analytics
+- **Support Operations**: Handle refunds and customer billing issues
+
+#### 5. Stripe Payment Development Workflow
+```bash
+# Create subscription products and pricing
+mcp__stripe__create_product
+mcp__stripe__create_price
+
+# Set up customer billing
+mcp__stripe__create_customer
+mcp__stripe__create_payment_link
+
+# Manage subscription lifecycle
+mcp__stripe__list_subscriptions
+mcp__stripe__update_subscription
+mcp__stripe__cancel_subscription
+
+# Handle payments and refunds
+mcp__stripe__list_payment_intents
+mcp__stripe__create_refund
+
+# Monitor financial health
+mcp__stripe__retrieve_balance
+mcp__stripe__list_disputes
+```
+
+**Integration with TOKUTEI Learning:**
+- **Free Plan**: 10 questions/day limit enforcement
+- **Basic Plan (¥1,980/month)**: Unlimited questions, 15 students max
+- **Pro Plan (¥4,980/month)**: Full features with detailed analytics
+- **Teacher Features**: Subscription management for multiple students
+- **Student Features**: Individual subscription handling and payment history
