@@ -1,11 +1,50 @@
-# React + TypeScript + Vite
+# TOKUTEI Learning Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Overview
 
-Currently, two official plugins are available:
+This is the frontend application for TOKUTEI Learning (トクテイ ラーニング), a web learning platform designed to help foreign workers prepare for Japan's Specified Skills (特定技能) exam.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Technology Stack
+
+- **React 19.1.0** with TypeScript 5.8.3
+- **Vite 7.0.0** for lightning-fast development and optimized builds
+- **Material-UI 7.2.0** for modern, accessible UI components
+- **Zustand** for efficient state management
+- **React Query** for server state synchronization
+- **React Router v6** for client-side routing
+
+## Key Features
+
+- 📚 Interactive question practice with furigana support
+- 📊 Real-time progress tracking and analytics
+- 🎯 Smart review system based on forgetting curve
+- 🌏 Multi-language support (Japanese, English, Chinese, Vietnamese)
+- 📱 Responsive design for all devices
+
+## Development
+
+```bash
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+
+# Run tests with coverage
+npm run test:coverage
+
+# Build for production
+npm run build
+```
+
+## Testing
+
+The project follows Test-Driven Development (TDD) principles with comprehensive test coverage:
+
+- Unit tests for business logic and utilities
+- Component tests with React Testing Library
+- Integration tests for API interactions
+- Current coverage: 60.82% (target: 80%+)
 
 ## Expanding the ESLint configuration
 
