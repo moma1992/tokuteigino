@@ -6,13 +6,20 @@ on:
     # Smart path filtering for relevant changes
     paths:
       - "**/*.py"
+      - "**/*.ts"
+      - "**/*.tsx"
+      - "**/*.js"
+      - "**/*.jsx"
+      - "backend/**/*"
+      - "frontend/**/*"
+      - "supabase/**/*"
       - "tests/**/*"
       - "requirements*.txt"
       - "pyproject.toml"
+      - "package*.json"
       - "CLAUDE.md"
-      - "services/**/*"
-      - "components/**/*"
-      - "utils/**/*"
+      - "docker-compose.yml"
+      - "Makefile"
 
 jobs:
   # Pre-analysis job to gather context
@@ -45,13 +52,25 @@ jobs:
           if echo "$CHANGED_FILES" | grep -q "\.py$"; then
             TECH_STACK="$TECH_STACK,Python"
           fi
-          if echo "$CHANGED_FILES" | grep -q "streamlit"; then
-            TECH_STACK="$TECH_STACK,Streamlit"
+          if echo "$CHANGED_FILES" | grep -q "\.tsx?\|\.jsx?$"; then
+            TECH_STACK="$TECH_STACK,TypeScript/React"
+          fi
+          if echo "$CHANGED_FILES" | grep -q "backend/"; then
+            TECH_STACK="$TECH_STACK,FastAPI"
+          fi
+          if echo "$CHANGED_FILES" | grep -q "frontend/"; then
+            TECH_STACK="$TECH_STACK,React/Vite"
           fi
           if echo "$CHANGED_FILES" | grep -q "supabase\|vector"; then
-            TECH_STACK="$TECH_STACK,Vector-DB"
+            TECH_STACK="$TECH_STACK,Supabase"
           fi
-          if echo "$CHANGED_FILES" | grep -q "test_"; then
+          if echo "$CHANGED_FILES" | grep -q "@mui\|material"; then
+            TECH_STACK="$TECH_STACK,Material-UI"
+          fi
+          if echo "$CHANGED_FILES" | grep -q "zustand\|@tanstack"; then
+            TECH_STACK="$TECH_STACK,StateManagement"
+          fi
+          if echo "$CHANGED_FILES" | grep -q "test_\|\.test\.\|\.spec\."; then
             TECH_STACK="$TECH_STACK,Testing"
           fi
           
@@ -67,12 +86,16 @@ jobs:
           
           # Set review focus based on changes
           REVIEW_FOCUS="general"
-          if echo "$CHANGED_FILES" | grep -q "test_"; then
+          if echo "$CHANGED_FILES" | grep -q "test_\|\.test\.\|\.spec\."; then
             REVIEW_FOCUS="testing"
-          elif echo "$CHANGED_FILES" | grep -q "vector\|embedding\|search"; then
-            REVIEW_FOCUS="vector-search"
-          elif echo "$CHANGED_FILES" | grep -q "security\|auth"; then
+          elif echo "$CHANGED_FILES" | grep -q "auth\|security\|protected"; then
             REVIEW_FOCUS="security"
+          elif echo "$CHANGED_FILES" | grep -q "frontend/"; then
+            REVIEW_FOCUS="frontend"
+          elif echo "$CHANGED_FILES" | grep -q "backend/"; then
+            REVIEW_FOCUS="backend"
+          elif echo "$CHANGED_FILES" | grep -q "supabase\|migration"; then
+            REVIEW_FOCUS="database"
           fi
           
           echo "tech-stack=$TECH_STACK" >> $GITHUB_OUTPUT
@@ -145,13 +168,15 @@ jobs:
           ${{ needs.pre-analysis.outputs.changed-files }}
           
           ## Repository Context
-          This is a RAG (Retrieval-Augmented Generation) application built with:
-          - Frontend: Streamlit
-          - Vector Database: Supabase (PostgreSQL + pgvector)
-          - PDF Processing: PyMuPDF + spaCy
-          - Embeddings: OpenAI text-embedding-3-small
-          - LLM: Claude API (Anthropic)
-          - Framework: LangChain
+          This is TOKUTEI Learning - A web learning application for foreign workers preparing for Japan's Specified Skills exam:
+          - Frontend: React 19 + Vite + TypeScript + Material-UI
+          - Backend: FastAPI + Python
+          - Database: Supabase (PostgreSQL 15+ with pgvector)
+          - AI/ML: OpenAI GPT-4o for question generation
+          - PDF Processing: PyPDF2 for material extraction
+          - State Management: Zustand + React Query
+          - Authentication: Supabase Auth with RLS
+          - Testing: Vitest + React Testing Library + pytest
           EOF
 
       - name: Generate file diffs
@@ -174,7 +199,7 @@ jobs:
         run: |
           # Create comprehensive review prompt
           cat > review_prompt.md << 'EOF'
-          You are an expert code reviewer specializing in Python RAG applications. Please conduct a comprehensive code review of the following changes.
+          You are an expert code reviewer specializing in full-stack web applications with React, TypeScript, FastAPI, and Supabase. Please conduct a comprehensive code review of the following changes for TOKUTEI Learning - a Japanese learning platform.
           
           ## Review Guidelines
           
@@ -186,11 +211,11 @@ jobs:
           ### 📋 Review Criteria
           
           #### 🚀 Performance & Scalability
-          - Vector search optimization for large document sets
-          - Memory management for PDF processing
+          - React component rendering optimization
+          - Bundle size and code splitting with Vite
           - Database query efficiency with Supabase
-          - Response time requirements (target: <500ms for search)
-          - Caching strategies for embeddings and results
+          - API response time requirements (target: <500ms)
+          - State management efficiency with Zustand
           
           #### 🔒 Security & Reliability
           - Input validation and sanitization
@@ -213,12 +238,12 @@ jobs:
           - API design consistency
           - Documentation completeness
           
-          #### 🎯 RAG-Specific Considerations
-          - Chunk size and overlap optimization
-          - Embedding model compatibility
-          - Vector similarity search accuracy
-          - Context window management
-          - Citation and source tracking
+          #### 🎯 TOKUTEI Learning-Specific Considerations
+          - Japanese language support and furigana handling
+          - Learning progress tracking accuracy
+          - Question generation quality
+          - Subscription plan enforcement
+          - Multi-language UI considerations
           
           ### 📊 Review Output Format
           
@@ -249,10 +274,10 @@ jobs:
           - **Design Concerns**: [Architectural issues]
           - **Refactoring Suggestions**: [Structural improvements]
           
-          ## 🎯 RAG-Specific Review
-          - **RAG Implementation**: [Assessment of RAG-specific code]
-          - **Vector Search**: [Vector database usage review]
-          - **Document Processing**: [PDF processing and chunking review]
+          ## 🎯 TOKUTEI Learning-Specific Review
+          - **Learning Features**: [Assessment of learning-specific code]
+          - **Database Design**: [Supabase schema and RLS review]
+          - **Frontend Components**: [React component quality review]
           
           ## 📋 Action Items
           ### 🚨 Critical Issues (Must Fix)
