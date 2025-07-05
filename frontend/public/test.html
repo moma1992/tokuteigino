@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Page</title>
+</head>
+<body>
+    <h1>Test Page</h1>
+    <p>If you can see this, the server is working.</p>
+    <script>
+        console.log('Test page loaded');
+        fetch('/src/main.tsx')
+            .then(response => response.text())
+            .then(text => {
+                console.log('main.tsx loaded successfully');
+                console.log('First 200 chars:', text.substring(0, 200));
+            })
+            .catch(error => {
+                console.error('Error loading main.tsx:', error);
+            });
+    </script>
+</body>
+</html>

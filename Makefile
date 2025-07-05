@@ -75,6 +75,101 @@ test-frontend: ## Run frontend tests in development container
 	@echo "$(BLUE)Running frontend tests in development container...$(RESET)"
 	docker-compose exec frontend npm test -- --run --passWithNoTests
 
+test-e2e: ## Run E2E tests with Playwright
+	@echo "$(BLUE)Running E2E tests with Playwright...$(RESET)"
+	@echo "$(YELLOW)Starting E2E test container...$(RESET)"
+	docker-compose up -d e2e-test
+	@echo "$(YELLOW)Installing dependencies...$(RESET)"
+	docker-compose exec e2e-test npm install
+	@echo "$(YELLOW)Running E2E tests...$(RESET)"
+	docker-compose exec e2e-test npm run test:e2e
+
+test-e2e-ui: ## Run E2E tests with Playwright UI
+	@echo "$(BLUE)Running E2E tests with Playwright UI...$(RESET)"
+	docker-compose up -d e2e-test
+	docker-compose exec e2e-test npm install
+	docker-compose exec e2e-test npm run test:e2e:ui
+
+test-e2e-debug: ## Run E2E tests in debug mode
+	@echo "$(BLUE)Running E2E tests in debug mode...$(RESET)"
+	docker-compose up -d e2e-test
+	docker-compose exec e2e-test npm install
+	docker-compose exec e2e-test npm run test:e2e:debug
+
+test-e2e-headed: ## Run E2E tests in headed mode
+	@echo "$(BLUE)Running E2E tests in headed mode...$(RESET)"
+	docker-compose up -d e2e-test
+	docker-compose exec e2e-test npm install
+	docker-compose exec e2e-test npm run test:e2e:headed
+
+test-e2e-setup: ## Setup E2E test environment
+	@echo "$(BLUE)Setting up E2E test environment...$(RESET)"
+	docker-compose up -d e2e-test
+	docker-compose exec e2e-test npm install
+	@echo "$(GREEN)E2E test environment ready!$(RESET)"
+
+test-e2e-prod: ## Run E2E tests against production Supabase
+	@echo "$(BLUE)Running E2E tests against production Supabase...$(RESET)"
+	@echo "$(YELLOW)WARNING: This will test against production environment!$(RESET)"
+	@read -p "Are you sure you want to continue? [y/N] " -n 1 -r; \
+	if [[ $$REPLY =~ ^[Yy]$$ ]]; then \
+		echo ""; \
+		echo "$(BLUE)Starting frontend with production Supabase...$(RESET)"; \
+		docker-compose up -d frontend; \
+		echo "$(BLUE)Setting production environment variables...$(RESET)"; \
+		docker-compose exec frontend sh -c 'export VITE_SUPABASE_URL=$${VITE_SUPABASE_PROD_URL:-https://your-project.supabase.co} && export VITE_SUPABASE_ANON_KEY=$${VITE_SUPABASE_PROD_ANON_KEY} && npm run test:e2e -- --project=chromium --workers=1'; \
+		echo "$(GREEN)Production E2E tests completed!$(RESET)"; \
+	else \
+		echo ""; \
+		echo "$(YELLOW)Cancelled.$(RESET)"; \
+	fi
+
+test-e2e-prod-auth: ## Run authentication E2E tests against production Supabase (safe UI tests only)
+	@echo "$(BLUE)Running authentication E2E tests against production Supabase...$(RESET)"
+	@echo "$(YELLOW)WARNING: This will test against production environment!$(RESET)"
+	@echo "$(YELLOW)Note: Running safe UI/validation tests only - no real user accounts will be created$(RESET)"
+	@read -p "Are you sure you want to continue? [y/N] " -n 1 -r; \
+	if [[ $$REPLY =~ ^[Yy]$$ ]]; then \
+		echo ""; \
+		echo "$(BLUE)Starting frontend with production Supabase...$(RESET)"; \
+		docker-compose up -d frontend; \
+		echo "$(BLUE)Running safe authentication tests...$(RESET)"; \
+		docker-compose exec frontend sh -c 'export VITE_SUPABASE_URL=$${VITE_SUPABASE_PROD_URL:-https://your-project.supabase.co} && export VITE_SUPABASE_ANON_KEY=$${VITE_SUPABASE_PROD_ANON_KEY} && npm run test:e2e:prod:auth'; \
+		echo "$(GREEN)Production authentication E2E tests completed!$(RESET)"; \
+	else \
+		echo ""; \
+		echo "$(YELLOW)Cancelled.$(RESET)"; \
+	fi
+
+test-e2e-prod-auth-all: ## Run ALL authentication E2E tests against production Supabase (including mock tests)
+	@echo "$(BLUE)Running ALL authentication E2E tests against production Supabase...$(RESET)"
+	@echo "$(RED)WARNING: This includes mock tests that may not work in production!$(RESET)"
+	@read -p "Are you sure you want to continue? [y/N] " -n 1 -r; \
+	if [[ $$REPLY =~ ^[Yy]$$ ]]; then \
+		echo ""; \
+		echo "$(BLUE)Starting frontend with production Supabase...$(RESET)"; \
+		docker-compose up -d frontend; \
+		echo "$(BLUE)Running all authentication tests...$(RESET)"; \
+		docker-compose exec frontend sh -c 'export VITE_SUPABASE_URL=$${VITE_SUPABASE_PROD_URL:-https://your-project.supabase.co} && export VITE_SUPABASE_ANON_KEY=$${VITE_SUPABASE_PROD_ANON_KEY} && npm run test:e2e:prod:auth:all'; \
+		echo "$(GREEN)All production authentication E2E tests completed!$(RESET)"; \
+	else \
+		echo ""; \
+		echo "$(YELLOW)Cancelled.$(RESET)"; \
+	fi
+
+test-e2e-prod-setup: ## Setup environment variables for production E2E testing
+	@echo "$(BLUE)Setting up production E2E test environment...$(RESET)"
+	@echo "$(YELLOW)Please ensure you have the following environment variables set:$(RESET)"
+	@echo "  VITE_SUPABASE_PROD_URL=https://your-project.supabase.co"
+	@echo "  VITE_SUPABASE_PROD_ANON_KEY=your-production-anon-key"
+	@echo ""
+	@echo "$(YELLOW)Add these to your .env file or export them before running tests.$(RESET)"
+	@echo ""
+	@echo "$(BLUE)Example:$(RESET)"
+	@echo "  export VITE_SUPABASE_PROD_URL=https://abcdefgh.supabase.co"
+	@echo "  export VITE_SUPABASE_PROD_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+	@echo "  make test-e2e-prod"
+
 test-coverage: ## Run tests with coverage in development containers
 	@echo "$(BLUE)Running tests with coverage in development containers...$(RESET)"
 	@echo "$(YELLOW)Backend coverage:$(RESET)"

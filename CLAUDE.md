@@ -579,6 +579,21 @@ docker network inspect tokuteigino_tokuteigino-network
 - **Auto-scaling** based on load
 - **Rolling updates** with zero downtime
 
+## Supabase本番環境接続ルール
+
+**重要**: Supabaseの本番環境との接続は必ずMCP経由で操作すること。直接的なCLIコマンドやAPIキーの使用は避ける。
+
+### MCP設定
+
+プロジェクト専用のMCP設定は`./.claude/mcp.json`に保存されています。このファイルには以下が含まれます：
+- Supabase MCPサーバーの設定
+- プロジェクトリファレンスID（直接指定）
+- アクセストークン（環境変数として設定）
+
+認証情報のバックアップは`./supabase/.env.production`にも保存されています。
+
+これらのファイルはGitにコミットしないこと（`.gitignore`で除外済み）。
+
 ## MCP (Model Context Protocol) Integration Strategy
 
 ### Available MCP Tools

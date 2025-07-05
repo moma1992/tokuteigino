@@ -15,7 +15,6 @@ export interface SignupCredentials {
   password: string;
   fullName: string;
   role: 'student' | 'teacher';
-  organizationName?: string; // Required for teachers
 }
 
 export interface PasswordResetRequest {
@@ -38,4 +37,5 @@ export interface AuthError {
   message: string;
   status?: number;
   code?: string;
+  type?: string;
 }

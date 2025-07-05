@@ -1,0 +1,5 @@
+# MCP configuration with sensitive data
+mcp.json
+
+# Settings
+settings.local.json

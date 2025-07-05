@@ -1,11 +1,21 @@
 # Vite + React + TypeScript Development Dockerfile
-FROM node:20-alpine
+FROM node:20-slim
 
 # Set working directory
 WORKDIR /app
 
-# Install minimal system dependencies
-RUN apk add --no-cache git bash curl
+# Install system dependencies needed for Playwright
+RUN apt-get update && apt-get install -y \
+    git \
+    bash \
+    curl \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set environment variables for Playwright
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=true
+ENV PLAYWRIGHT_BROWSERS_PATH=/usr/bin/
+ENV CI=true
 
 # Copy package files
 COPY package*.json ./

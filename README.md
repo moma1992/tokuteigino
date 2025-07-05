@@ -1,298 +1,183 @@
-# TOKUTEI Learning（トクテイ ラーニング）
+# Supabase CLI
 
-特定技能試験学習支援ウェブアプリ - A web learning application for foreign workers preparing for Japan's Specified Skills exam.
+[![Coverage Status](https://coveralls.io/repos/github/supabase/cli/badge.svg?branch=main)](https://coveralls.io/github/supabase/cli?branch=main) [![Bitbucket Pipelines](https://img.shields.io/bitbucket/pipelines/supabase-cli/setup-cli/master?style=flat-square&label=Bitbucket%20Canary)](https://bitbucket.org/supabase-cli/setup-cli/pipelines) [![Gitlab Pipeline Status](https://img.shields.io/gitlab/pipeline-status/sweatybridge%2Fsetup-cli?label=Gitlab%20Canary)
+](https://gitlab.com/sweatybridge/setup-cli/-/pipelines)
 
-## 🚀 Quick Start
+[Supabase](https://supabase.io) is an open source Firebase alternative. We're building the features of Firebase using enterprise-grade open source tools.
 
-### Prerequisites
-- Docker & Docker Compose
-- Git
+This repository contains all the functionality for Supabase CLI.
 
-### Setup Development Environment
+- [x] Running Supabase locally
+- [x] Managing database migrations
+- [x] Creating and deploying Supabase Functions
+- [x] Generating types directly from your database schema
+- [x] Making authenticated HTTP requests to [Management API](https://supabase.com/docs/reference/api/introduction)
 
-```bash
-# Clone the repository
-git clone https://github.com/your-username/tokuteigino.git
-cd tokuteigino
+## Getting started
 
-# Initial setup (creates .env file and builds containers)
-make setup
+### Install the CLI
 
-# Start development environment
-make dev
-```
-
-### Access Points
-- **Frontend**: http://localhost:5173
-- **Backend API**: http://localhost:8000
-- **API Documentation**: http://localhost:8000/docs
-- **Database Admin**: http://localhost:5050 (admin@example.com / admin)
-- **Supabase Local**: http://localhost:54322
-
-## 📋 Available Commands
-
-### Development
-```bash
-make dev         # Start all services
-make up          # Start services in background
-make down        # Stop all services
-make restart     # Restart all services
-make logs        # View all logs
-make status      # Show service status
-```
-
-### Testing
-```bash
-make test        # Run all tests
-make test-backend    # Backend tests only
-make test-frontend   # Frontend tests only
-make test-e2e        # End-to-end tests
-make ci          # Full CI pipeline
-```
-
-### Code Quality
-```bash
-make lint        # Run linting
-make format      # Format code
-make typecheck   # Type checking
-```
-
-### Database
-```bash
-make db-reset    # Reset database with seed data
-make db-migrate  # Run migrations
-make db-backup   # Create backup
-make shell-db    # Access database shell
-```
-
-### Maintenance
-```bash
-make clean       # Clean Docker resources
-make health      # Health check all services
-make help        # Show all commands
-```
-
-## 🏗️ Architecture
-
-### Tech Stack
-- **Frontend**: React + Vite + TypeScript
-- **Backend**: FastAPI + Python
-- **Database**: PostgreSQL 15 + Supabase
-- **Cache**: Redis 7
-- **Proxy**: Nginx
-- **Testing**: Jest, Pytest, Playwright
-
-### Docker Services
-
-#### Development Environment
-| Service | Port | Description |
-|---------|------|-------------|
-| Frontend | 5173 | React + Vite development server |
-| Backend | 8000 | FastAPI application |
-| PostgreSQL | 5432 | Main database |
-| Redis | 6379 | Cache and sessions |
-| Nginx | 80, 443 | Reverse proxy |
-| pgAdmin | 5050 | Database management |
-| Supabase | 54322 | Local Supabase instance |
-
-#### Test Environment
-| Service | Port | Description |
-|---------|------|-------------|
-| postgres-test | 5433 | Isolated test database |
-| redis-test | 6380 | Test cache |
-| backend-test | - | API testing with coverage |
-| frontend-test | - | Component testing |
-| e2e-test | - | End-to-end testing |
-
-## 🧪 Testing Strategy
-
-### Test Pyramid
-- **Unit Tests (70%)**: Fast, isolated function testing
-- **Integration Tests (20%)**: Component and API testing
-- **E2E Tests (10%)**: Complete user workflows
-
-### Running Tests
-```bash
-# All tests with coverage
-make test
-
-# Backend tests with pytest
-make test-backend
-
-# Frontend tests with Jest
-make test-frontend
-
-# E2E tests with Playwright
-make test-e2e
-
-# Watch mode during development
-make test-watch
-```
-
-## 🔧 Configuration
-
-### Environment Variables
-Copy `.env.example` to `.env` and configure:
+Available via [NPM](https://www.npmjs.com) as dev dependency. To install:
 
 ```bash
-# Required for development
-OPENAI_API_KEY=sk-your-openai-key
-SUPABASE_ANON_KEY=your-supabase-key
-STRIPE_SECRET_KEY=sk_test_your-stripe-key
-
-# Optional for development
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/tokuteigino
-REDIS_URL=redis://localhost:6379
+npm i supabase --save-dev
 ```
 
-### File Structure
-```
-.
-├── frontend/           # React + Vite application
-├── backend/           # FastAPI application
-├── docker/            # Docker configurations
-├── supabase/          # Database migrations and config
-├── scripts/           # Development scripts
-├── .github/           # CI/CD workflows
-├── docker-compose.yml # Main development environment
-└── Makefile          # Development commands
-```
+To install the beta release channel:
 
-## 🚀 Features
-
-### For Students
-- Practice questions with furigana support
-- Progress tracking and analytics
-- Smart review system
-- Real-time feedback
-
-### For Teachers
-- PDF upload with automatic question generation
-- Student progress monitoring
-- Class analytics
-- Subscription management
-
-## 🛠️ Development Workflow
-
-### Adding New Features
-1. Create feature branch: `git checkout -b feature/your-feature`
-2. Write tests first (TDD approach)
-3. Implement feature
-4. Run tests: `make test`
-5. Check code quality: `make lint`
-6. Create pull request
-
-### Code Quality Standards
-- TypeScript for all code
-- 80%+ test coverage
-- ESLint/Prettier formatting
-- Type checking with mypy/tsc
-
-
-## 🔒 Security
-
-- Row Level Security (RLS) with Supabase
-- Environment variable protection
-- API rate limiting
-- Input validation and sanitization
-
-## 📊 Monitoring
-
-### Health Checks
 ```bash
-# Check all services
-make health
-
-# View service status
-make status
-
-# Monitor logs
-make logs
+npm i supabase@beta --save-dev
 ```
 
-### Performance
-- Bundle size monitoring
-- Database query optimization
-- Cache hit rate tracking
-- API response time monitoring
+When installing with yarn 4, you need to disable experimental fetch with the following nodejs config.
 
-## 🚢 Deployment
+```
+NODE_OPTIONS=--no-experimental-fetch yarn add supabase
+```
 
-### Production Build
+> **Note**
+For Bun versions below v1.0.17, you must add `supabase` as a [trusted dependency](https://bun.sh/guides/install/trusted) before running `bun add -D supabase`.
+
+<details>
+  <summary><b>macOS</b></summary>
+
+  Available via [Homebrew](https://brew.sh). To install:
+
+  ```sh
+  brew install supabase/tap/supabase
+  ```
+
+  To install the beta release channel:
+  
+  ```sh
+  brew install supabase/tap/supabase-beta
+  brew link --overwrite supabase-beta
+  ```
+  
+  To upgrade:
+
+  ```sh
+  brew upgrade supabase
+  ```
+</details>
+
+<details>
+  <summary><b>Windows</b></summary>
+
+  Available via [Scoop](https://scoop.sh). To install:
+
+  ```powershell
+  scoop bucket add supabase https://github.com/supabase/scoop-bucket.git
+  scoop install supabase
+  ```
+
+  To upgrade:
+
+  ```powershell
+  scoop update supabase
+  ```
+</details>
+
+<details>
+  <summary><b>Linux</b></summary>
+
+  Available via [Homebrew](https://brew.sh) and Linux packages.
+
+  #### via Homebrew
+
+  To install:
+
+  ```sh
+  brew install supabase/tap/supabase
+  ```
+
+  To upgrade:
+
+  ```sh
+  brew upgrade supabase
+  ```
+
+  #### via Linux packages
+
+  Linux packages are provided in [Releases](https://github.com/supabase/cli/releases). To install, download the `.apk`/`.deb`/`.rpm`/`.pkg.tar.zst` file depending on your package manager and run the respective commands.
+
+  ```sh
+  sudo apk add --allow-untrusted <...>.apk
+  ```
+
+  ```sh
+  sudo dpkg -i <...>.deb
+  ```
+
+  ```sh
+  sudo rpm -i <...>.rpm
+  ```
+
+  ```sh
+  sudo pacman -U <...>.pkg.tar.zst
+  ```
+</details>
+
+<details>
+  <summary><b>Other Platforms</b></summary>
+
+  You can also install the CLI via [go modules](https://go.dev/ref/mod#go-install) without the help of package managers.
+
+  ```sh
+  go install github.com/supabase/cli@latest
+  ```
+
+  Add a symlink to the binary in `$PATH` for easier access:
+
+  ```sh
+  ln -s "$(go env GOPATH)/bin/cli" /usr/bin/supabase
+  ```
+
+  This works on other non-standard Linux distros.
+</details>
+
+<details>
+  <summary><b>Community Maintained Packages</b></summary>
+
+  Available via [pkgx](https://pkgx.sh/). Package script [here](https://github.com/pkgxdev/pantry/blob/main/projects/supabase.com/cli/package.yml).
+  To install in your working directory:
+
+  ```bash
+  pkgx install supabase
+  ```
+
+  Available via [Nixpkgs](https://nixos.org/). Package script [here](https://github.com/NixOS/nixpkgs/blob/master/pkgs/development/tools/supabase-cli/default.nix).
+</details>
+
+### Run the CLI
+
 ```bash
-# Build production images
-docker-compose -f docker-compose.prod.yml build
-
-# Deploy to staging
-docker-compose -f docker-compose.staging.yml up -d
-
-# Deploy to production
-docker-compose -f docker-compose.prod.yml up -d
+supabase bootstrap
 ```
 
-## 🤝 Contributing
+Or using npx:
 
-1. Fork the repository
-2. Create your feature branch
-3. Write tests for your changes
-4. Ensure all tests pass
-5. Submit a pull request
-
-## 📚 Documentation
-
-- [API Documentation](http://localhost:8000/docs) - Interactive API docs
-- [CLAUDE.md](./CLAUDE.md) - Detailed development guidelines
-- [Architecture Guide](./docs/architecture.md) - System architecture
-- [Testing Guide](./docs/testing.md) - Comprehensive testing strategy
-
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🆘 Troubleshooting
-
-### Common Issues
-
-#### Docker Issues
 ```bash
-# Clean Docker resources
-make clean
-
-# Reset entire environment  
-make clean-volumes  # WARNING: Deletes all data
-
-# Rebuild containers
-make build
+npx supabase bootstrap
 ```
 
-#### Database Issues
-```bash
-# Reset database
-make db-reset
+The bootstrap command will guide you through the process of setting up a Supabase project using one of the [starter](https://github.com/supabase-community/supabase-samples/blob/main/samples.json) templates.
 
-# Check database connection
-make shell-db
+## Docs
 
-# View database logs
-make logs-db
+Command & config reference can be found [here](https://supabase.com/docs/reference/cli/about).
+
+## Breaking changes
+
+We follow semantic versioning for changes that directly impact CLI commands, flags, and configurations.
+
+However, due to dependencies on other service images, we cannot guarantee that schema migrations, seed.sql, and generated types will always work for the same CLI major version. If you need such guarantees, we encourage you to pin a specific version of CLI in package.json.
+
+## Developing
+
+To run from source:
+
+```sh
+# Go >= 1.22
+go run . help
 ```
-
-#### Port Conflicts
-```bash
-# Check which ports are in use
-lsof -i :5173  # Frontend
-lsof -i :8000  # Backend
-lsof -i :5432  # Database
-
-# Stop conflicting services
-make down
-```
-
-### Getting Help
-- Check the [issues page](https://github.com/your-username/tokuteigino/issues)
-- Read the [troubleshooting guide](./docs/troubleshooting.md)
-- Contact the development team
-
----
-
-**Made with ❤️ for foreign workers preparing for Japan's Specified Skills exam**
