@@ -11,6 +11,14 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
+    exclude: [
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/build/**',
+      '**/e2e/**', // Exclude E2E tests from vitest
+      '**/*.d.ts',
+      '**/*.config.*',
+    ],
     coverage: {
       reporter: ['text', 'json', 'html'],
       exclude: [
@@ -20,6 +28,7 @@ export default defineConfig({
         '**/*.config.*',
         'dist/',
         'build/',
+        'e2e/', // Exclude E2E tests from coverage
       ],
     },
   },
