@@ -28,7 +28,8 @@ def get_authenticated_client(jwt_token: str) -> Client:
     Get Supabase client with user authentication
     """
     client = get_supabase_client()
-    client.auth.set_session_from_url(jwt_token)
+    # Set the access token for authenticated requests
+    client.auth.set_session(access_token=jwt_token, refresh_token="")
     return client
 
 

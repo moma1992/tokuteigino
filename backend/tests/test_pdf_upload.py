@@ -4,102 +4,24 @@ Tests for PDF upload functionality - TDD approach
 import pytest
 import io
 import os
-from fastapi.testclient import TestClient
 from unittest.mock import Mock, patch, AsyncMock
 from app.models import ProcessingStatus, UploadResponse, ErrorResponse
-
-
-@pytest.fixture
-def client():
-    """Create a test client"""
-    from main import app
-    return TestClient(app)
-
-
-@pytest.fixture
-def sample_pdf_bytes():
-    """Create a sample PDF file content for testing"""
-    # Simple PDF content (minimal valid PDF)
-    pdf_content = b"""%PDF-1.4
-1 0 obj
-<<
-/Type /Catalog
-/Pages 2 0 R
->>
-endobj
-2 0 obj
-<<
-/Type /Pages
-/Kids [3 0 R]
-/Count 1
->>
-endobj
-3 0 obj
-<<
-/Type /Page
-/Parent 2 0 R
-/MediaBox [0 0 612 792]
-/Contents 4 0 R
->>
-endobj
-4 0 obj
-<<
-/Length 44
->>
-stream
-BT
-/F1 12 Tf
-72 720 Td
-(Hello World) Tj
-ET
-endstream
-endobj
-xref
-0 5
-0000000000 65535 f 
-0000000009 00000 n 
-0000000058 00000 n 
-0000000115 00000 n 
-0000000189 00000 n 
-trailer
-<<
-/Size 5
-/Root 1 0 R
->>
-startxref
-284
-%%EOF"""
-    return pdf_content
-
-
-@pytest.fixture
-def mock_auth_user():
-    """Mock authenticated user"""
-    return {
-        "id": "teacher-123",
-        "email": "teacher@test.com",
-        "role": "teacher"
-    }
 
 
 class TestPDFUpload:
     """Test cases for PDF upload functionality"""
     
-    def test_upload_pdf_success(self, client, sample_pdf_bytes, mock_auth_user):
+    def test_upload_pdf_success(self, client, sample_pdf_bytes, mock_teacher_user, mock_supabase_client):
         """Test successful PDF upload"""
-        with patch('app.database.get_authenticated_client') as mock_client:
-            # Mock Supabase operations
-            mock_supabase = Mock()
-            mock_client.return_value = mock_supabase
-            mock_supabase.auth.get_user.return_value.user = mock_auth_user
+        with patch('app.routers.materials.get_current_user') as mock_get_user, \
+             patch('app.database.get_authenticated_client') as mock_get_client:
             
-            # Mock storage upload
-            mock_supabase.storage.from_.return_value.upload.return_value = {
-                "path": "learning_materials/teacher-123/test.pdf"
-            }
+            # Mock authentication
+            mock_get_user.return_value = mock_teacher_user
+            mock_get_client.return_value = mock_supabase_client
             
-            # Mock database insert
-            mock_supabase.table.return_value.insert.return_value.execute.return_value.data = [{
+            # Mock successful upload result
+            mock_supabase_client.table.return_value.insert.return_value.execute.return_value.data = [{
                 "id": "material-123",
                 "title": "Test Material",
                 "processing_status": "pending"
@@ -136,15 +58,13 @@ class TestPDFUpload:
         
         response = client.post("/api/v1/materials/upload", files=files, data=data)
         
-        assert response.status_code == 401
-        assert "authentication" in response.json()["error"].lower()
+        assert response.status_code == 403
+        assert "credentials" in response.json()["detail"].lower()
     
-    def test_upload_non_pdf_file(self, client, mock_auth_user):
+    def test_upload_non_pdf_file(self, client, mock_teacher_user):
         """Test upload of non-PDF file should fail"""
-        with patch('app.database.get_authenticated_client') as mock_client:
-            mock_supabase = Mock()
-            mock_client.return_value = mock_supabase
-            mock_supabase.auth.get_user.return_value.user = mock_auth_user
+        with patch('app.routers.materials.get_current_user') as mock_get_user:
+            mock_get_user.return_value = mock_teacher_user
             
             # Create non-PDF file
             files = {
@@ -160,7 +80,7 @@ class TestPDFUpload:
             )
             
             assert response.status_code == 400
-            assert "pdf" in response.json()["error"].lower()
+            assert "pdf" in response.json()["detail"].lower()
     
     def test_upload_oversized_file(self, client, mock_auth_user):
         """Test upload of oversized file should fail"""
@@ -233,16 +153,18 @@ class TestPDFUpload:
     
     def test_upload_student_role_denied(self, client, sample_pdf_bytes):
         """Test that students cannot upload materials"""
-        student_user = {
+        student_user = Mock()
+        student_user.id = "student-123"
+        student_user.email = "student@test.com"
+        student_user.user_metadata = {
             "id": "student-123",
-            "email": "student@test.com", 
-            "role": "student"
+            "email": "student@test.com",
+            "role": "student",
+            "full_name": "Test Student"
         }
         
-        with patch('app.database.get_authenticated_client') as mock_client:
-            mock_supabase = Mock()
-            mock_client.return_value = mock_supabase
-            mock_supabase.auth.get_user.return_value.user = student_user
+        with patch('app.routers.materials.get_current_user') as mock_get_user:
+            mock_get_user.return_value = student_user
             
             files = {
                 "file": ("test.pdf", io.BytesIO(sample_pdf_bytes), "application/pdf")
@@ -257,7 +179,7 @@ class TestPDFUpload:
             )
             
             assert response.status_code == 403
-            assert "teacher" in response.json()["error"].lower()
+            assert "teacher" in response.json()["detail"].lower()
     
     def test_upload_storage_failure(self, client, sample_pdf_bytes, mock_auth_user):
         """Test handling of storage upload failure"""

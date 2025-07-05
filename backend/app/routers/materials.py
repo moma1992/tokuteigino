@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, File, UploadFile, Form, HTTPException, B
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from supabase import Client
 
-from app.database import get_authenticated_client, NotFoundError, UnauthorizedError, ValidationError
+from app.database import get_authenticated_client, get_supabase_client, NotFoundError, UnauthorizedError, ValidationError
 from app.models import (
     LearningMaterialResponse, 
     LearningMaterialListResponse,
@@ -40,9 +40,21 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
         user_response = client.auth.get_user()
         if not user_response.user:
             raise HTTPException(status_code=401, detail="Invalid authentication token")
+        
+        # Get user profile from database
+        profile_response = client.table("profiles").select("*").eq("id", user_response.user.id).execute()
+        if not profile_response.data:
+            raise HTTPException(status_code=401, detail="User profile not found")
+        
+        profile = profile_response.data[0]
+        
+        # Add profile data to user object
+        user_response.user.user_metadata = profile
+        user_response.user.access_token = credentials.credentials
+        
         return user_response.user
     except Exception as e:
-        raise HTTPException(status_code=401, detail="Authentication failed")
+        raise HTTPException(status_code=401, detail=f"Authentication failed: {str(e)}")
 
 
 def require_teacher_role(user=Depends(get_current_user)):
@@ -180,13 +192,13 @@ async def upload_pdf(
                 detail=f"Failed to create material record: {str(e)}"
             )
         
-        # Start background processing
+        # Start background processing  
         background_tasks.add_task(
             process_pdf_background,
             material_id,
             file_content,
             user.id,
-            client
+            get_supabase_client()  # Use a fresh client for background task
         )
         
         return UploadResponse(
