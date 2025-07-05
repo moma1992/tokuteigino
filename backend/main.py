@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.routers import materials
+
 app = FastAPI(
     title="TOKUTEI Learning API",
     description="API for TOKUTEI Learning - 特定技能試験学習支援アプリ",
@@ -15,6 +17,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Include routers
+app.include_router(materials.router)
 
 @app.get("/")
 async def root():
