@@ -14,7 +14,6 @@ export class AuthService {
     try {
       const { email, password, fullName, role } = credentials;
 
-      console.log('Starting Supabase signup process for:', email);
 
       // Use Supabase standard signup with email confirmation
       const { data, error } = await supabase.auth.signUp({
@@ -28,26 +27,22 @@ export class AuthService {
         }
       });
 
-      console.log('Supabase signup result:', { data, error });
 
       if (error) {
-        console.error('Supabase signup error:', error);
-        console.error('Error details:', JSON.stringify(error, null, 2));
         return {
           user: null,
           profile: null,
           error: {
+            ...error,
             message: this.getSignupErrorMessage(error),
             code: error.code,
-            status: error.status,
-            ...error
+            status: error.status
           }
         };
       }
 
       // Check if email confirmation is required
       if (!data.user) {
-        console.log('Signup successful, confirmation email sent');
         return {
           user: null,
           profile: null,
@@ -60,7 +55,6 @@ export class AuthService {
 
       // Check if user email is confirmed
       if (data.user && !data.user.email_confirmed_at) {
-        console.log('User created but email not confirmed yet');
         return {
           user: null,
           profile: null,
@@ -79,7 +73,6 @@ export class AuthService {
         .single();
 
       if (profileError) {
-        console.error('Profile fetch error:', profileError);
         return {
           user: data.user,
           profile: null,
@@ -87,10 +80,8 @@ export class AuthService {
         };
       }
 
-      console.log('User and profile created successfully');
       return { user: data.user, profile: profileData, error: null };
     } catch (error) {
-      console.error('Unexpected signup error:', error);
       return {
         user: null,
         profile: null,
@@ -100,13 +91,12 @@ export class AuthService {
   }
 
   private getSignupErrorMessage(error: any): string {
-    console.log('Processing signup error:', error);
     
     if (error.message?.includes('User already registered')) {
       return 'このメールアドレスは既に登録されています';
     }
     if (error.message?.includes('Password should be at least')) {
-      return 'パスワードは6文字以上で入力してください';
+      return 'パスワードは8文字以上で入力してください';
     }
     if (error.message?.includes('Unable to validate email address')) {
       return 'メールアドレスの形式が正しくありません';
@@ -127,7 +117,6 @@ export class AuthService {
     try {
       const { email, password } = credentials;
       
-      console.log('Starting Supabase login process for:', email);
 
       // Use Supabase standard login
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -135,10 +124,8 @@ export class AuthService {
         password
       });
 
-      console.log('Supabase login result:', { data, error });
 
       if (error) {
-        console.error('Supabase login error:', error);
         return {
           user: null,
           profile: null,
@@ -147,7 +134,6 @@ export class AuthService {
       }
 
       if (!data.user) {
-        console.error('No user returned from login');
         return {
           user: null,
           profile: null,
@@ -163,7 +149,6 @@ export class AuthService {
         .single();
 
       if (profileError) {
-        console.error('Profile fetch error:', profileError);
         return {
           user: data.user,
           profile: null,
@@ -171,10 +156,8 @@ export class AuthService {
         };
       }
 
-      console.log('Login successful for:', email);
       return { user: data.user, profile: profileData, error: null };
     } catch (error) {
-      console.error('Unexpected login error:', error);
       return {
         user: null,
         profile: null,
@@ -195,21 +178,17 @@ export class AuthService {
 
   async logout() {
     try {
-      console.log('Starting Supabase logout process');
       
       const { error } = await supabase.auth.signOut();
       
       if (error) {
-        console.error('Supabase logout error:', error);
         return {
           error: { message: 'ログアウト中にエラーが発生しました' } as AuthError,
         };
       }
       
-      console.log('Logout successful');
       return { error: null };
     } catch (error) {
-      console.error('Unexpected logout error:', error);
       return {
         error: { message: 'ログアウト中に予期しないエラーが発生しました' } as AuthError,
       };

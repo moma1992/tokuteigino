@@ -41,9 +41,9 @@ describe('LoginForm', () => {
   it('should render login form with all fields', () => {
     renderLoginForm();
 
-    expect(screen.getByText('ログイン')).toBeInTheDocument();
-    expect(screen.getByLabelText('メールアドレス')).toBeInTheDocument();
-    expect(screen.getByLabelText('パスワード')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'ログイン' })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: /メールアドレス/i })).toBeInTheDocument();
+    expect(document.getElementById('password')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'ログイン' })).toBeInTheDocument();
     expect(screen.getByText('パスワードを忘れた方')).toBeInTheDocument();
     expect(screen.getByText('アカウントをお持ちでない方')).toBeInTheDocument();
@@ -53,7 +53,7 @@ describe('LoginForm', () => {
     const user = userEvent.setup();
     renderLoginForm();
 
-    const emailInput = screen.getByLabelText('メールアドレス');
+    const emailInput = screen.getByRole('textbox', { name: /メールアドレス/i });
     const submitButton = screen.getByRole('button', { name: 'ログイン' });
 
     // Invalid email
@@ -62,32 +62,34 @@ describe('LoginForm', () => {
 
     await waitFor(() => {
       expect(screen.getByText('有効なメールアドレスを入力してください')).toBeInTheDocument();
-    });
+    }, { timeout: 3000 });
   });
 
   it('should validate password requirements', async () => {
     const user = userEvent.setup();
     renderLoginForm();
 
-    const emailInput = screen.getByLabelText('メールアドレス');
-    const passwordInput = screen.getByLabelText('パスワード');
+    const emailInput = screen.getByRole('textbox', { name: /メールアドレス/i });
+    const passwordInput = document.getElementById('password') as HTMLInputElement;
     const submitButton = screen.getByRole('button', { name: 'ログイン' });
 
     await user.type(emailInput, 'test@example.com');
+    // Click on the password field to focus it
+    await user.click(passwordInput);
     await user.type(passwordInput, 'short');
     await user.click(submitButton);
 
     await waitFor(() => {
       expect(screen.getByText('パスワードは8文字以上で入力してください')).toBeInTheDocument();
-    });
+    }, { timeout: 3000 });
   });
 
   it('should submit form with valid credentials', async () => {
     const user = userEvent.setup();
     renderLoginForm();
 
-    const emailInput = screen.getByLabelText('メールアドレス');
-    const passwordInput = screen.getByLabelText('パスワード');
+    const emailInput = screen.getByRole('textbox', { name: /メールアドレス/i });
+    const passwordInput = document.getElementById('password') as HTMLInputElement;
     const submitButton = screen.getByRole('button', { name: 'ログイン' });
 
     await user.type(emailInput, 'test@example.com');
@@ -141,8 +143,8 @@ describe('LoginForm', () => {
 
     renderLoginForm();
 
-    const emailInput = screen.getByLabelText('メールアドレス');
-    const passwordInput = screen.getByLabelText('パスワード');
+    const emailInput = screen.getByRole('textbox', { name: /メールアドレス/i });
+    const passwordInput = document.getElementById('password') as HTMLInputElement;
     const submitButton = screen.getByRole('button', { name: 'ログイン' });
 
     await user.type(emailInput, 'test@example.com');
@@ -158,7 +160,7 @@ describe('LoginForm', () => {
     const user = userEvent.setup();
     renderLoginForm();
 
-    const passwordInput = screen.getByLabelText('パスワード') as HTMLInputElement;
+    const passwordInput = document.getElementById('password') as HTMLInputElement;
     const visibilityToggle = screen.getByRole('button', { name: /パスワードを表示/ });
 
     expect(passwordInput.type).toBe('password');

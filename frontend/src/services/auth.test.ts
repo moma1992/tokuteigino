@@ -40,48 +40,15 @@ describe('AuthService', () => {
       const mockUser = {
         id: 'user-123',
         email: credentials.email,
+        email_confirmed_at: '2024-01-01T00:00:00Z',
         user_metadata: { full_name: credentials.fullName, role: credentials.role },
       };
 
-      vi.mocked(supabase.auth.signUp).mockResolvedValueOnce({
-        data: { user: mockUser, session: { access_token: 'token' } },
-        error: null,
-      });
-
-      const result = await authService.signup(credentials);
-
-      expect(supabase.auth.signUp).toHaveBeenCalledWith({
+      const mockProfile = {
+        id: 'user-123',
         email: credentials.email,
-        password: credentials.password,
-        options: {
-          data: {
-            full_name: credentials.fullName,
-            role: credentials.role,
-          },
-        },
-      });
-
-      expect(result.user).toEqual(mockUser);
-      expect(result.error).toBeNull();
-    });
-
-    it('should sign up a teacher successfully with organization', async () => {
-      const credentials: SignupCredentials = {
-        email: 'teacher@test.com',
-        password: 'Test123456!',
-        fullName: 'Test Teacher',
-        role: 'teacher',
-        organizationName: 'Test School',
-      };
-
-      const mockUser = {
-        id: 'user-456',
-        email: credentials.email,
-        user_metadata: {
-          full_name: credentials.fullName,
-          role: credentials.role,
-          organization_name: credentials.organizationName,
-        },
+        full_name: credentials.fullName,
+        role: credentials.role,
       };
 
       vi.mocked(supabase.auth.signUp).mockResolvedValueOnce({
@@ -90,8 +57,9 @@ describe('AuthService', () => {
       });
 
       vi.mocked(supabase.from).mockReturnValueOnce({
-        update: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockResolvedValueOnce({ data: null, error: null }),
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValueOnce({ data: mockProfile, error: null }),
       } as any);
 
       const result = await authService.signup(credentials);
@@ -103,12 +71,66 @@ describe('AuthService', () => {
           data: {
             full_name: credentials.fullName,
             role: credentials.role,
-            organization_name: credentials.organizationName,
           },
         },
       });
 
       expect(result.user).toEqual(mockUser);
+      expect(result.profile).toEqual(mockProfile);
+      expect(result.error).toBeNull();
+    });
+
+    it('should sign up a teacher successfully', async () => {
+      const credentials: SignupCredentials = {
+        email: 'teacher@test.com',
+        password: 'Test123456!',
+        fullName: 'Test Teacher',
+        role: 'teacher',
+      };
+
+      const mockUser = {
+        id: 'user-456',
+        email: credentials.email,
+        email_confirmed_at: '2024-01-01T00:00:00Z',
+        user_metadata: {
+          full_name: credentials.fullName,
+          role: credentials.role,
+        },
+      };
+
+      const mockProfile = {
+        id: 'user-456',
+        email: credentials.email,
+        full_name: credentials.fullName,
+        role: credentials.role,
+      };
+
+      vi.mocked(supabase.auth.signUp).mockResolvedValueOnce({
+        data: { user: mockUser, session: { access_token: 'token' } },
+        error: null,
+      });
+
+      vi.mocked(supabase.from).mockReturnValueOnce({
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValueOnce({ data: mockProfile, error: null }),
+      } as any);
+
+      const result = await authService.signup(credentials);
+
+      expect(supabase.auth.signUp).toHaveBeenCalledWith({
+        email: credentials.email,
+        password: credentials.password,
+        options: {
+          data: {
+            full_name: credentials.fullName,
+            role: credentials.role,
+          },
+        },
+      });
+
+      expect(result.user).toEqual(mockUser);
+      expect(result.profile).toEqual(mockProfile);
       expect(result.error).toBeNull();
     });
 
@@ -123,6 +145,7 @@ describe('AuthService', () => {
       const mockError = {
         message: 'Password should be at least 8 characters',
         status: 400,
+        code: 'weak_password',
       };
 
       vi.mocked(supabase.auth.signUp).mockResolvedValueOnce({
@@ -133,7 +156,11 @@ describe('AuthService', () => {
       const result = await authService.signup(credentials);
 
       expect(result.user).toBeNull();
-      expect(result.error).toEqual(mockError);
+      expect(result.error).toBeDefined();
+      // The service should transform the error message
+      expect(result.error?.message).toBe('パスワードは8文字以上で入力してください');
+      expect(result.error?.code).toBe('weak_password');
+      expect(result.error?.status).toBe(400);
     });
   });
 
@@ -184,6 +211,7 @@ describe('AuthService', () => {
       const mockError = {
         message: 'Invalid login credentials',
         status: 400,
+        code: 'invalid_credentials',
       };
 
       vi.mocked(supabase.auth.signInWithPassword).mockResolvedValueOnce({
@@ -195,7 +223,9 @@ describe('AuthService', () => {
 
       expect(result.user).toBeNull();
       expect(result.profile).toBeNull();
-      expect(result.error).toEqual(mockError);
+      expect(result.error).toMatchObject({
+        message: 'メールアドレスまたはパスワードが正しくありません。',
+      });
     });
   });
 
@@ -215,6 +245,7 @@ describe('AuthService', () => {
       const mockError = {
         message: 'Failed to logout',
         status: 500,
+        code: 'logout_error',
       };
 
       vi.mocked(supabase.auth.signOut).mockResolvedValueOnce({
@@ -223,7 +254,9 @@ describe('AuthService', () => {
 
       const result = await authService.logout();
 
-      expect(result.error).toEqual(mockError);
+      expect(result.error).toMatchObject({
+        message: 'ログアウト中にエラーが発生しました',
+      });
     });
   });
 
@@ -355,7 +388,7 @@ describe('AuthService', () => {
       const result = await authService.updateProfile(userId, updates);
 
       expect(result.profile).toBeNull();
-      expect(result.error).toEqual(mockError);
+      expect(result.error).toMatchObject(mockError);
     });
   });
 
