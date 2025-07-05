@@ -1,183 +1,206 @@
-# Supabase CLI
+# TOKUTEI Learning（トクテイ ラーニング）
 
-[![Coverage Status](https://coveralls.io/repos/github/supabase/cli/badge.svg?branch=main)](https://coveralls.io/github/supabase/cli?branch=main) [![Bitbucket Pipelines](https://img.shields.io/bitbucket/pipelines/supabase-cli/setup-cli/master?style=flat-square&label=Bitbucket%20Canary)](https://bitbucket.org/supabase-cli/setup-cli/pipelines) [![Gitlab Pipeline Status](https://img.shields.io/gitlab/pipeline-status/sweatybridge%2Fsetup-cli?label=Gitlab%20Canary)
-](https://gitlab.com/sweatybridge/setup-cli/-/pipelines)
+特定技能試験学習支援ウェブアプリケーション - 軽量Docker開発環境
 
-[Supabase](https://supabase.io) is an open source Firebase alternative. We're building the features of Firebase using enterprise-grade open source tools.
+## 🚀 クイックスタート（軽量版）
 
-This repository contains all the functionality for Supabase CLI.
+### 必要な環境
+- Docker Desktop (2GB メモリ制限推奨)
+- Make
 
-- [x] Running Supabase locally
-- [x] Managing database migrations
-- [x] Creating and deploying Supabase Functions
-- [x] Generating types directly from your database schema
-- [x] Making authenticated HTTP requests to [Management API](https://supabase.com/docs/reference/api/introduction)
-
-## Getting started
-
-### Install the CLI
-
-Available via [NPM](https://www.npmjs.com) as dev dependency. To install:
-
+### 1. 初期セットアップ
 ```bash
-npm i supabase --save-dev
+# リポジトリクローン
+git clone <repository-url>
+cd tokuteigino
+
+# 初期セットアップ
+make setup
 ```
 
-To install the beta release channel:
-
+### 2. 開発環境起動
 ```bash
-npm i supabase@beta --save-dev
+# 軽量開発環境を起動
+make dev
+
+# または
+make up
 ```
 
-When installing with yarn 4, you need to disable experimental fetch with the following nodejs config.
+### 3. アクセス
+- **フロントエンド**: http://localhost:5173
+- **バックエンドAPI**: http://localhost:8000
+- **API ドキュメント**: http://localhost:8000/docs
+- **Supabase ダッシュボード**: https://supabase.com/dashboard/project/rvbapnvvyzxlhtsurqtg
 
-```
-NODE_OPTIONS=--no-experimental-fetch yarn add supabase
-```
+## 📊 リソース使用量
 
-> **Note**
-For Bun versions below v1.0.17, you must add `supabase` as a [trusted dependency](https://bun.sh/guides/install/trusted) before running `bun add -D supabase`.
+### メモリ制限（最適化済み）
+- **フロントエンド**: 1GB制限 (256MB予約)
+- **バックエンド**: 1GB制限 (256MB予約)
+- **合計**: 2GB制限
 
-<details>
-  <summary><b>macOS</b></summary>
+### 削除されたコンテナ（軽量化）
+- ~~PostgreSQL~~ → 本番Supabase使用
+- ~~Redis~~ → 本番Supabase使用
+- ~~pgAdmin~~ → Supabaseダッシュボード使用
+- ~~ローカルSupabase~~ → 本番Supabase使用
 
-  Available via [Homebrew](https://brew.sh). To install:
+## 🛠️ 開発コマンド
 
-  ```sh
-  brew install supabase/tap/supabase
-  ```
-
-  To install the beta release channel:
-  
-  ```sh
-  brew install supabase/tap/supabase-beta
-  brew link --overwrite supabase-beta
-  ```
-  
-  To upgrade:
-
-  ```sh
-  brew upgrade supabase
-  ```
-</details>
-
-<details>
-  <summary><b>Windows</b></summary>
-
-  Available via [Scoop](https://scoop.sh). To install:
-
-  ```powershell
-  scoop bucket add supabase https://github.com/supabase/scoop-bucket.git
-  scoop install supabase
-  ```
-
-  To upgrade:
-
-  ```powershell
-  scoop update supabase
-  ```
-</details>
-
-<details>
-  <summary><b>Linux</b></summary>
-
-  Available via [Homebrew](https://brew.sh) and Linux packages.
-
-  #### via Homebrew
-
-  To install:
-
-  ```sh
-  brew install supabase/tap/supabase
-  ```
-
-  To upgrade:
-
-  ```sh
-  brew upgrade supabase
-  ```
-
-  #### via Linux packages
-
-  Linux packages are provided in [Releases](https://github.com/supabase/cli/releases). To install, download the `.apk`/`.deb`/`.rpm`/`.pkg.tar.zst` file depending on your package manager and run the respective commands.
-
-  ```sh
-  sudo apk add --allow-untrusted <...>.apk
-  ```
-
-  ```sh
-  sudo dpkg -i <...>.deb
-  ```
-
-  ```sh
-  sudo rpm -i <...>.rpm
-  ```
-
-  ```sh
-  sudo pacman -U <...>.pkg.tar.zst
-  ```
-</details>
-
-<details>
-  <summary><b>Other Platforms</b></summary>
-
-  You can also install the CLI via [go modules](https://go.dev/ref/mod#go-install) without the help of package managers.
-
-  ```sh
-  go install github.com/supabase/cli@latest
-  ```
-
-  Add a symlink to the binary in `$PATH` for easier access:
-
-  ```sh
-  ln -s "$(go env GOPATH)/bin/cli" /usr/bin/supabase
-  ```
-
-  This works on other non-standard Linux distros.
-</details>
-
-<details>
-  <summary><b>Community Maintained Packages</b></summary>
-
-  Available via [pkgx](https://pkgx.sh/). Package script [here](https://github.com/pkgxdev/pantry/blob/main/projects/supabase.com/cli/package.yml).
-  To install in your working directory:
-
-  ```bash
-  pkgx install supabase
-  ```
-
-  Available via [Nixpkgs](https://nixos.org/). Package script [here](https://github.com/NixOS/nixpkgs/blob/master/pkgs/development/tools/supabase-cli/default.nix).
-</details>
-
-### Run the CLI
-
+### 環境管理
 ```bash
-supabase bootstrap
+make up          # サービス開始
+make down        # サービス停止
+make restart     # サービス再起動
+make status      # ステータス確認
+make health      # ヘルスチェック
 ```
 
-Or using npx:
-
+### ログ確認
 ```bash
-npx supabase bootstrap
+make logs               # 全ログ
+make logs-backend       # バックエンドログ
+make logs-frontend      # フロントエンドログ
 ```
 
-The bootstrap command will guide you through the process of setting up a Supabase project using one of the [starter](https://github.com/supabase-community/supabase-samples/blob/main/samples.json) templates.
-
-## Docs
-
-Command & config reference can be found [here](https://supabase.com/docs/reference/cli/about).
-
-## Breaking changes
-
-We follow semantic versioning for changes that directly impact CLI commands, flags, and configurations.
-
-However, due to dependencies on other service images, we cannot guarantee that schema migrations, seed.sql, and generated types will always work for the same CLI major version. If you need such guarantees, we encourage you to pin a specific version of CLI in package.json.
-
-## Developing
-
-To run from source:
-
-```sh
-# Go >= 1.22
-go run . help
+### テスト実行
+```bash
+make test                    # 全テスト
+make test-backend           # バックエンドテスト
+make test-frontend          # フロントエンドテスト
+make test-e2e-prod-auth     # 本番E2Eテスト
 ```
+
+### コード品質
+```bash
+make lint        # リント
+make format      # フォーマット
+make typecheck   # 型チェック
+```
+
+## 🗄️ データベース操作
+
+### 本番Supabase使用
+- **ダッシュボード**: https://supabase.com/dashboard/project/rvbapnvvyzxlhtsurqtg
+- **SQL エディタ**: https://supabase.com/dashboard/project/rvbapnvvyzxlhtsurqtg/editor
+- **テーブル管理**: https://supabase.com/dashboard/project/rvbapnvvyzxlhtsurqtg/database/tables
+
+### 型生成
+```bash
+# 本番データベースからTypeScript型を生成
+npx supabase gen types typescript --project-id=rvbapnvvyzxlhtsurqtg > types/supabase.ts
+```
+
+## 🏗️ アーキテクチャ
+
+### フロントエンド
+- **React 18+** + TypeScript
+- **Vite** 開発サーバー
+- **Material-UI (MUI)** UI コンポーネント
+- **Zustand** 状態管理
+- **React Query** サーバー状態管理
+
+### バックエンド
+- **FastAPI** + Python
+- **Poetry** パッケージ管理
+- **本番Supabase** 接続
+
+### 外部サービス
+- **Supabase** (PostgreSQL, Auth, Storage, Vector)
+- **OpenAI** GPT-4o (質問生成)
+- **Stripe** (決済)
+
+## 🧪 テスト戦略
+
+### E2Eテスト
+```bash
+# 本番環境での安全なUIテスト
+make test-e2e-prod-auth
+
+# モック認証を使用したテスト
+# ファイル: frontend/e2e/auth/login-logout.spec.ts
+```
+
+### モック認証
+- テストモード検出: `?test=true` パラメータ
+- モックユーザー: 確認済み/未確認ユーザー
+- 安全なテスト: 実際のユーザーアカウント作成なし
+
+## 🔧 トラブルシューティング
+
+### メモリ使用量確認
+```bash
+# コンテナリソース使用量
+docker stats
+
+# 詳細なメモリ使用量
+docker stats --format "table {{.Container}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.MemPerc}}"
+```
+
+### 接続テスト
+```bash
+# バックエンドヘルスチェック
+curl http://localhost:8000/health
+
+# フロントエンド確認
+curl http://localhost:5173/
+
+# Supabase接続テスト
+curl -H "apikey: YOUR_ANON_KEY" https://rvbapnvvyzxlhtsurqtg.supabase.co/rest/v1/
+```
+
+### Docker環境リセット
+```bash
+# キャッシュクリア
+make clean
+
+# 完全リセット
+make clean-volumes
+```
+
+## 📝 開発ガイドライン
+
+### TDD開発
+1. **Red**: テスト失敗を書く
+2. **Green**: 最小限のコードでテスト合格
+3. **Refactor**: コード品質向上
+
+### Docker-First開発
+- すべての開発作業はDockerコンテナ内で実行
+- ホストマシンでの`npm install`等は禁止
+- `make shell-frontend`、`make shell-backend`でコンテナ内作業
+
+### コード規約
+- TypeScript使用必須
+- React 18 Concurrent Features活用
+- MCP (Model Context Protocol) 利用推奨
+
+## 🌐 本番環境
+
+### デプロイ
+- **Vercel**: フロントエンドホスティング
+- **Vercel Functions**: バックエンドAPI
+- **Supabase**: データベース・認証
+
+### 環境変数
+```bash
+VITE_SUPABASE_PROD_URL=https://rvbapnvvyzxlhtsurqtg.supabase.co
+VITE_SUPABASE_PROD_ANON_KEY=your-production-key
+```
+
+## 📞 サポート
+
+### ヘルプ
+```bash
+make help  # 利用可能コマンド一覧
+```
+
+### ドキュメント
+- **技術詳細**: `CLAUDE.md`
+- **API仕様**: http://localhost:8000/docs
+- **Supabase**: https://supabase.com/docs
+
+---
+
+**軽量Docker開発環境で効率的な開発を！** 🚀

@@ -25,10 +25,10 @@ build: ## Build all Docker containers
 up: ## Start all services
 	@echo "$(BLUE)Starting all services...$(RESET)"
 	docker-compose up -d
-	@echo "$(GREEN)Services started successfully!$(RESET)"
+	@echo "$(GREEN)Lightweight services started successfully!$(RESET)"
 	@echo "Frontend: http://localhost:5173"
 	@echo "Backend API: http://localhost:8000"
-	@echo "pgAdmin: http://localhost:5050"
+	@echo "Supabase Dashboard: https://supabase.com/dashboard/project/rvbapnvvyzxlhtsurqtg"
 
 down: ## Stop all services
 	@echo "$(BLUE)Stopping all services...$(RESET)"
@@ -46,8 +46,9 @@ logs-backend: ## Show backend logs
 logs-frontend: ## Show frontend logs
 	docker-compose logs -f frontend
 
-logs-db: ## Show database logs
-	docker-compose logs -f postgres
+logs-db: ## Show database logs (removed - use Supabase Dashboard)
+	@echo "$(YELLOW)Database logs removed - use Supabase Dashboard$(RESET)"
+	@echo "https://supabase.com/dashboard/project/rvbapnvvyzxlhtsurqtg/logs"
 
 # Development Tools
 shell-backend: ## Access backend container shell
@@ -56,8 +57,9 @@ shell-backend: ## Access backend container shell
 shell-frontend: ## Access frontend container shell
 	docker-compose exec frontend sh
 
-shell-db: ## Access database shell
-	docker-compose exec postgres psql -U postgres -d tokuteigino
+shell-db: ## Access database shell (removed - use Supabase Dashboard)
+	@echo "$(YELLOW)Database shell removed - use Supabase Dashboard$(RESET)"
+	@echo "https://supabase.com/dashboard/project/rvbapnvvyzxlhtsurqtg/editor"
 
 # Testing
 test: ## Run tests in development containers
@@ -200,35 +202,31 @@ typecheck: ## Run type checking
 	docker-compose exec backend poetry run mypy .
 	docker-compose exec frontend npm run typecheck
 
-# Database Operations
-db-reset: ## Reset database with fresh data
-	@echo "$(BLUE)Resetting database...$(RESET)"
-	docker-compose exec postgres psql -U postgres -c "DROP DATABASE IF EXISTS tokuteigino;"
-	docker-compose exec postgres psql -U postgres -c "CREATE DATABASE tokuteigino;"
-	docker-compose exec postgres psql -U postgres -d tokuteigino -f /docker-entrypoint-initdb.d/seed.sql
-	@echo "$(GREEN)Database reset completed!$(RESET)"
+# Production Database Operations (via Supabase Dashboard)
+db-reset: ## Reset database (removed - use Supabase Dashboard)
+	@echo "$(YELLOW)Database operations moved to Supabase Dashboard$(RESET)"
+	@echo "https://supabase.com/dashboard/project/rvbapnvvyzxlhtsurqtg/editor"
 
-db-migrate: ## Run database migrations
-	@echo "$(BLUE)Running database migrations...$(RESET)"
-	docker-compose exec backend poetry run alembic upgrade head
+db-migrate: ## Run database migrations (removed - use Supabase Dashboard)
+	@echo "$(YELLOW)Database migrations moved to Supabase Dashboard$(RESET)"
+	@echo "https://supabase.com/dashboard/project/rvbapnvvyzxlhtsurqtg/database/migrations"
 
-db-backup: ## Backup database
-	@echo "$(BLUE)Creating database backup...$(RESET)"
-	docker-compose exec postgres pg_dump -U postgres tokuteigino > backup_$(shell date +%Y%m%d_%H%M%S).sql
-	@echo "$(GREEN)Database backup created!$(RESET)"
+db-backup: ## Backup database (removed - use Supabase Dashboard)
+	@echo "$(YELLOW)Database backup moved to Supabase Dashboard$(RESET)"
+	@echo "https://supabase.com/dashboard/project/rvbapnvvyzxlhtsurqtg/database/backups"
 
-# Supabase Operations
-supabase-start: ## Start local Supabase
-	@echo "$(BLUE)Starting local Supabase...$(RESET)"
-	cd supabase && npx supabase start
+# Supabase Operations (Production)
+supabase-start: ## Start local Supabase (removed - using production)
+	@echo "$(YELLOW)Local Supabase removed - using production$(RESET)"
+	@echo "https://supabase.com/dashboard/project/rvbapnvvyzxlhtsurqtg"
 
-supabase-stop: ## Stop local Supabase
-	@echo "$(BLUE)Stopping local Supabase...$(RESET)"
-	cd supabase && npx supabase stop
+supabase-stop: ## Stop local Supabase (removed - using production)
+	@echo "$(YELLOW)Local Supabase removed - using production$(RESET)"
+	@echo "https://supabase.com/dashboard/project/rvbapnvvyzxlhtsurqtg"
 
-supabase-reset: ## Reset local Supabase
-	@echo "$(BLUE)Resetting local Supabase...$(RESET)"
-	cd supabase && npx supabase db reset
+supabase-reset: ## Reset local Supabase (removed - using production)
+	@echo "$(YELLOW)Local Supabase removed - using production$(RESET)"
+	@echo "https://supabase.com/dashboard/project/rvbapnvvyzxlhtsurqtg"
 
 # Maintenance
 clean: ## Clean up Docker resources
@@ -253,18 +251,19 @@ status: ## Show status of all services
 	@echo "$(BLUE)Service Status:$(RESET)"
 	docker-compose ps
 
-health: ## Check health of all services
-	@echo "$(BLUE)Health Check:$(RESET)"
+health: ## Check health of all services (lightweight)
+	@echo "$(BLUE)Health Check (Lightweight):$(RESET)"
 	@curl -f http://localhost:8000/health || echo "$(RED)Backend is down$(RESET)"
 	@curl -f http://localhost:5173/ || echo "$(RED)Frontend is down$(RESET)"
-	@docker-compose exec postgres pg_isready -U postgres || echo "$(RED)Database is down$(RESET)"
+	@echo "$(GREEN)Database: Production Supabase (external)$(RESET)"
 
 # Development Workflow
-dev: build up ## Quick development setup
-	@echo "$(GREEN)Development environment is ready!$(RESET)"
+dev: build up ## Quick lightweight development setup
+	@echo "$(GREEN)Lightweight development environment is ready!$(RESET)"
 	@echo "Backend API: http://localhost:8000"
 	@echo "Frontend: http://localhost:5173"
-	@echo "pgAdmin: http://localhost:5050 (admin@example.com / admin)"
+	@echo "Supabase Dashboard: https://supabase.com/dashboard/project/rvbapnvvyzxlhtsurqtg"
+	@echo "$(BLUE)Memory usage: ~2GB total (1GB per container)$(RESET)"
 
 # CI/CD
 ci: lint typecheck test ## Run CI pipeline locally

@@ -332,7 +332,7 @@ npm run build
    - Test coverage should not decrease
    - Tests must pass in CI before merge
 
-## Docker Development Environment
+## Docker Development Environment (Lightweight)
 
 ### Quick Start
 
@@ -340,7 +340,7 @@ npm run build
 # Initial setup (first time only)
 make setup
 
-# Start development environment
+# Start lightweight development environment
 make dev
 # or
 make up
@@ -349,25 +349,23 @@ make up
 make down
 ```
 
-### Docker Services
+### Docker Services (Optimized for 2GB Memory)
 
 #### Core Services
-- **Frontend**: React + Vite (Port: 5173)
-- **Backend**: FastAPI + Python (Port: 8000)
-- **Database**: PostgreSQL 15 (Port: 5432)
-- **Cache**: Redis 7 (Port: 6379)
-- **Proxy**: Nginx (Port: 80, 443)
+- **Frontend**: React + Vite (Port: 5173) - Memory: 1GB limit
+- **Backend**: FastAPI + Python (Port: 8000) - Memory: 1GB limit
 
-#### Development Tools
-- **pgAdmin**: Database management (Port: 5050)
-- **Supabase**: Local Supabase instance (Port: 54322)
+#### External Services (Production)
+- **Database**: Supabase Production PostgreSQL
+- **Authentication**: Supabase Auth
+- **Storage**: Supabase Storage
+- **Vector Database**: Supabase Vector (pgvector)
 
-#### Test Environment
-- **postgres-test**: Test database (Port: 5433)
-- **redis-test**: Test cache (Port: 6380)
-- **backend-test**: API testing with pytest + coverage
-- **frontend-test**: Component testing with Jest
-- **e2e-test**: End-to-end testing with Playwright
+#### Removed Services (For Performance)
+- ~~**Database**: Local PostgreSQL~~ → Uses Production Supabase
+- ~~**Cache**: Local Redis~~ → Uses Production Supabase
+- ~~**pgAdmin**: Database management~~ → Use Supabase Dashboard
+- ~~**Supabase**: Local instance~~ → Use Production Supabase
 
 ### Development Commands
 
@@ -389,7 +387,7 @@ make restart
 make logs
 make logs-backend
 make logs-frontend
-make logs-db
+# make logs-db  # Removed: no local database
 ```
 
 #### Development Tools
@@ -397,7 +395,7 @@ make logs-db
 # Access container shells
 make shell-backend
 make shell-frontend
-make shell-db
+# make shell-db  # Removed: use Supabase Dashboard
 
 # Check service health
 make health
@@ -412,7 +410,7 @@ make test
 # Run specific test suites
 make test-backend
 make test-frontend
-make test-e2e
+make test-e2e-prod-auth  # E2E tests against production
 
 # Run tests in watch mode
 make test-watch
@@ -433,52 +431,42 @@ make typecheck
 make ci
 ```
 
-#### Database Operations
+#### Production Database Operations
 ```bash
-# Reset database with seed data
-make db-reset
+# Use Supabase Dashboard for database management
+# https://supabase.com/dashboard/project/rvbapnvvyzxlhtsurqtg
 
-# Run migrations
-make db-migrate
+# Generate TypeScript types from production
+npx supabase gen types typescript --project-id=rvbapnvvyzxlhtsurqtg > types/supabase.ts
 
-# Create backup
-make db-backup
-
-# Access database shell
-make shell-db
+# Database operations via MCP (recommended)
+# Use Claude's Supabase MCP tools for safe database operations
 ```
 
-#### Supabase Operations
-```bash
-# Start local Supabase
-make supabase-start
+### Container Architecture (Lightweight)
 
-# Stop local Supabase
-make supabase-stop
-
-# Reset Supabase database
-make supabase-reset
-```
-
-### Container Architecture
-
-#### Frontend Container (React + Vite)
+#### Frontend Container (React + Vite) - Memory Limited
 - **Base Image**: node:18-alpine
 - **Ports**: 5173
+- **Memory Limit**: 1GB (reserved: 256MB)
+- **CPU Limit**: 1.0 core (reserved: 0.25 core)
 - **Volumes**: Hot reload support
-- **Features**: Vite dev server, TypeScript support, health checks
+- **Features**: Vite dev server, TypeScript support, production Supabase connection
 
-#### Backend Container (FastAPI + Python)
+#### Backend Container (FastAPI + Python) - Memory Limited
 - **Base Image**: python:3.11-slim
 - **Package Manager**: Poetry
 - **Ports**: 8000
-- **Features**: Auto-reload, health checks, non-root user
+- **Memory Limit**: 1GB (reserved: 256MB)
+- **CPU Limit**: 1.0 core (reserved: 0.25 core)
+- **Features**: Auto-reload, health checks, non-root user, production Supabase connection
 
-#### Testing Containers
-- **Isolated test environments** for each service
-- **Separate databases** for testing
-- **Coverage reporting** with HTML output
-- **E2E testing** with Playwright
+#### Removed Containers (Performance Optimization)
+- ~~**PostgreSQL**: Local database~~ → Uses Production Supabase
+- ~~**Redis**: Local cache~~ → Uses Production Supabase
+- ~~**pgAdmin**: Database UI~~ → Use Supabase Dashboard
+- ~~**Supabase Local**: Local instance~~ → Use Production Supabase
+- ~~**Testing Containers**: Isolated environments~~ → Tests run in main containers
 
 ### Environment Configuration
 
@@ -493,24 +481,22 @@ SUPABASE_ANON_KEY=your-supabase-key
 STRIPE_SECRET_KEY=sk_test_your-stripe-key
 ```
 
-#### Development URLs
+#### Development URLs (Lightweight)
 - **Frontend**: http://localhost:5173
 - **Backend API**: http://localhost:8000
 - **API Docs**: http://localhost:8000/docs
-- **pgAdmin**: http://localhost:5050 (admin@example.com / admin)
-- **Supabase**: http://localhost:54322
-- **Nginx Proxy**: http://localhost:80
+- **Supabase Dashboard**: https://supabase.com/dashboard/project/rvbapnvvyzxlhtsurqtg
 
-### Testing Strategy in Docker
+### Testing Strategy in Docker (Lightweight)
 
 #### Unit Tests
-- Run in isolated containers
+- Run in main containers
 - Fast feedback loop
 - Mocked external dependencies
 - Coverage reporting to `/app/htmlcov`
 
 #### Integration Tests
-- Real database connections
+- Production Supabase connections
 - API endpoint testing
 - Component integration
 - Service communication
@@ -518,12 +504,14 @@ STRIPE_SECRET_KEY=sk_test_your-stripe-key
 #### E2E Tests
 - Full web application workflows
 - Browser automation with Playwright
-- Cross-service testing
-- User journey validation
+- Production environment testing
+- User journey validation with mock authentication
 
-### Performance Optimization
+### Performance Optimization (2GB Memory Limit)
 
 #### Container Optimization
+- **Memory limits**: 1GB per container (2GB total)
+- **CPU limits**: 1.0 core per container
 - **Multi-stage builds** for production
 - **Layer caching** for faster builds
 - **Volume mounts** for development
@@ -532,24 +520,25 @@ STRIPE_SECRET_KEY=sk_test_your-stripe-key
 #### Development Workflow
 - **Hot reloading** for both frontend and backend
 - **Incremental builds** with Docker layer caching
-- **Parallel testing** across multiple containers
-- **Resource limits** to prevent system overload
+- **Resource-efficient testing** in main containers
+- **Production Supabase** to reduce local resource usage
 
 ### Troubleshooting
 
-#### Common Issues
+#### Common Issues (Lightweight)
 ```bash
 # Clear Docker cache
 make clean
 
-# Reset entire environment
-./scripts/dev.sh reset
-
-# View service logs
-docker-compose logs [service-name]
+# View service logs (lightweight)
+docker-compose logs backend
+docker-compose logs frontend
 
 # Check container resource usage
 docker stats
+
+# Memory usage monitoring
+docker stats --format "table {{.Container}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.MemPerc}}"
 ```
 
 #### Debug Mode
@@ -558,26 +547,32 @@ docker stats
 export LOG_LEVEL=DEBUG
 
 # Access container internals
-docker-compose exec [service] bash
+docker-compose exec backend bash
+docker-compose exec frontend sh
 
 # Network debugging
 docker network ls
 docker network inspect tokuteigino_tokuteigino-network
+
+# Supabase connection testing
+curl -H "apikey: YOUR_ANON_KEY" https://rvbapnvvyzxlhtsurqtg.supabase.co/rest/v1/
 ```
 
-### Production Deployment
+### Production Deployment (Lightweight)
 
 #### Docker Images
 - **Optimized production builds** with multi-stage Dockerfiles
 - **Security scanning** with Snyk/Trivy
 - **Image size optimization** using Alpine Linux
 - **Non-root containers** for security
+- **Memory-efficient builds** optimized for 2GB environments
 
 #### Container Orchestration
-- **Kubernetes** manifests for production
+- **Kubernetes** manifests with resource limits
 - **Helm charts** for deployment management
-- **Auto-scaling** based on load
+- **Auto-scaling** based on memory and CPU metrics
 - **Rolling updates** with zero downtime
+- **Resource quotas** for memory management
 
 ## Supabase本番環境接続ルール
 
