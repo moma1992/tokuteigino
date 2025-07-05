@@ -1,298 +1,206 @@
 # TOKUTEI Learning（トクテイ ラーニング）
 
-特定技能試験学習支援ウェブアプリ - A web learning application for foreign workers preparing for Japan's Specified Skills exam.
+特定技能試験学習支援ウェブアプリケーション - 軽量Docker開発環境
 
-## 🚀 Quick Start
+## 🚀 クイックスタート（軽量版）
 
-### Prerequisites
-- Docker & Docker Compose
-- Git
+### 必要な環境
+- Docker Desktop (2GB メモリ制限推奨)
+- Make
 
-### Setup Development Environment
-
+### 1. 初期セットアップ
 ```bash
-# Clone the repository
-git clone https://github.com/your-username/tokuteigino.git
+# リポジトリクローン
+git clone <repository-url>
 cd tokuteigino
 
-# Initial setup (creates .env file and builds containers)
+# 初期セットアップ
 make setup
+```
 
-# Start development environment
+### 2. 開発環境起動
+```bash
+# 軽量開発環境を起動
 make dev
+
+# または
+make up
 ```
 
-### Access Points
-- **Frontend**: http://localhost:5173
-- **Backend API**: http://localhost:8000
-- **API Documentation**: http://localhost:8000/docs
-- **Database Admin**: http://localhost:5050 (admin@example.com / admin)
-- **Supabase Local**: http://localhost:54322
+### 3. アクセス
+- **フロントエンド**: http://localhost:5173
+- **バックエンドAPI**: http://localhost:8000
+- **API ドキュメント**: http://localhost:8000/docs
+- **Supabase ダッシュボード**: https://supabase.com/dashboard/project/rvbapnvvyzxlhtsurqtg
 
-## 📋 Available Commands
+## 📊 リソース使用量
 
-### Development
+### メモリ制限（最適化済み）
+- **フロントエンド**: 1GB制限 (256MB予約)
+- **バックエンド**: 1GB制限 (256MB予約)
+- **合計**: 2GB制限
+
+### 削除されたコンテナ（軽量化）
+- ~~PostgreSQL~~ → 本番Supabase使用
+- ~~Redis~~ → 本番Supabase使用
+- ~~pgAdmin~~ → Supabaseダッシュボード使用
+- ~~ローカルSupabase~~ → 本番Supabase使用
+
+## 🛠️ 開発コマンド
+
+### 環境管理
 ```bash
-make dev         # Start all services
-make up          # Start services in background
-make down        # Stop all services
-make restart     # Restart all services
-make logs        # View all logs
-make status      # Show service status
+make up          # サービス開始
+make down        # サービス停止
+make restart     # サービス再起動
+make status      # ステータス確認
+make health      # ヘルスチェック
 ```
 
-### Testing
+### ログ確認
 ```bash
-make test        # Run all tests
-make test-backend    # Backend tests only
-make test-frontend   # Frontend tests only
-make test-e2e        # End-to-end tests
-make ci          # Full CI pipeline
+make logs               # 全ログ
+make logs-backend       # バックエンドログ
+make logs-frontend      # フロントエンドログ
 ```
 
-### Code Quality
+### テスト実行
 ```bash
-make lint        # Run linting
-make format      # Format code
-make typecheck   # Type checking
+make test                    # 全テスト
+make test-backend           # バックエンドテスト
+make test-frontend          # フロントエンドテスト
+make test-e2e-prod-auth     # 本番E2Eテスト
 ```
 
-### Database
+### コード品質
 ```bash
-make db-reset    # Reset database with seed data
-make db-migrate  # Run migrations
-make db-backup   # Create backup
-make shell-db    # Access database shell
+make lint        # リント
+make format      # フォーマット
+make typecheck   # 型チェック
 ```
 
-### Maintenance
+## 🗄️ データベース操作
+
+### 本番Supabase使用
+- **ダッシュボード**: https://supabase.com/dashboard/project/rvbapnvvyzxlhtsurqtg
+- **SQL エディタ**: https://supabase.com/dashboard/project/rvbapnvvyzxlhtsurqtg/editor
+- **テーブル管理**: https://supabase.com/dashboard/project/rvbapnvvyzxlhtsurqtg/database/tables
+
+### 型生成
 ```bash
-make clean       # Clean Docker resources
-make health      # Health check all services
-make help        # Show all commands
+# 本番データベースからTypeScript型を生成
+npx supabase gen types typescript --project-id=rvbapnvvyzxlhtsurqtg > types/supabase.ts
 ```
 
-## 🏗️ Architecture
+## 🏗️ アーキテクチャ
 
-### Tech Stack
-- **Frontend**: React + Vite + TypeScript
-- **Backend**: FastAPI + Python
-- **Database**: PostgreSQL 15 + Supabase
-- **Cache**: Redis 7
-- **Proxy**: Nginx
-- **Testing**: Jest, Pytest, Playwright
+### フロントエンド
+- **React 18+** + TypeScript
+- **Vite** 開発サーバー
+- **Material-UI (MUI)** UI コンポーネント
+- **Zustand** 状態管理
+- **React Query** サーバー状態管理
 
-### Docker Services
+### バックエンド
+- **FastAPI** + Python
+- **Poetry** パッケージ管理
+- **本番Supabase** 接続
 
-#### Development Environment
-| Service | Port | Description |
-|---------|------|-------------|
-| Frontend | 5173 | React + Vite development server |
-| Backend | 8000 | FastAPI application |
-| PostgreSQL | 5432 | Main database |
-| Redis | 6379 | Cache and sessions |
-| Nginx | 80, 443 | Reverse proxy |
-| pgAdmin | 5050 | Database management |
-| Supabase | 54322 | Local Supabase instance |
+### 外部サービス
+- **Supabase** (PostgreSQL, Auth, Storage, Vector)
+- **OpenAI** GPT-4o (質問生成)
+- **Stripe** (決済)
 
-#### Test Environment
-| Service | Port | Description |
-|---------|------|-------------|
-| postgres-test | 5433 | Isolated test database |
-| redis-test | 6380 | Test cache |
-| backend-test | - | API testing with coverage |
-| frontend-test | - | Component testing |
-| e2e-test | - | End-to-end testing |
+## 🧪 テスト戦略
 
-## 🧪 Testing Strategy
-
-### Test Pyramid
-- **Unit Tests (70%)**: Fast, isolated function testing
-- **Integration Tests (20%)**: Component and API testing
-- **E2E Tests (10%)**: Complete user workflows
-
-### Running Tests
+### E2Eテスト
 ```bash
-# All tests with coverage
-make test
+# 本番環境での安全なUIテスト
+make test-e2e-prod-auth
 
-# Backend tests with pytest
-make test-backend
-
-# Frontend tests with Jest
-make test-frontend
-
-# E2E tests with Playwright
-make test-e2e
-
-# Watch mode during development
-make test-watch
+# モック認証を使用したテスト
+# ファイル: frontend/e2e/auth/login-logout.spec.ts
 ```
 
-## 🔧 Configuration
+### モック認証
+- テストモード検出: `?test=true` パラメータ
+- モックユーザー: 確認済み/未確認ユーザー
+- 安全なテスト: 実際のユーザーアカウント作成なし
 
-### Environment Variables
-Copy `.env.example` to `.env` and configure:
+## 🔧 トラブルシューティング
 
+### メモリ使用量確認
 ```bash
-# Required for development
-OPENAI_API_KEY=sk-your-openai-key
-SUPABASE_ANON_KEY=your-supabase-key
-STRIPE_SECRET_KEY=sk_test_your-stripe-key
+# コンテナリソース使用量
+docker stats
 
-# Optional for development
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/tokuteigino
-REDIS_URL=redis://localhost:6379
+# 詳細なメモリ使用量
+docker stats --format "table {{.Container}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.MemPerc}}"
 ```
 
-### File Structure
-```
-.
-├── frontend/           # React + Vite application
-├── backend/           # FastAPI application
-├── docker/            # Docker configurations
-├── supabase/          # Database migrations and config
-├── scripts/           # Development scripts
-├── .github/           # CI/CD workflows
-├── docker-compose.yml # Main development environment
-└── Makefile          # Development commands
-```
-
-## 🚀 Features
-
-### For Students
-- Practice questions with furigana support
-- Progress tracking and analytics
-- Smart review system
-- Real-time feedback
-
-### For Teachers
-- PDF upload with automatic question generation
-- Student progress monitoring
-- Class analytics
-- Subscription management
-
-## 🛠️ Development Workflow
-
-### Adding New Features
-1. Create feature branch: `git checkout -b feature/your-feature`
-2. Write tests first (TDD approach)
-3. Implement feature
-4. Run tests: `make test`
-5. Check code quality: `make lint`
-6. Create pull request
-
-### Code Quality Standards
-- TypeScript for all code
-- 80%+ test coverage
-- ESLint/Prettier formatting
-- Type checking with mypy/tsc
-
-
-## 🔒 Security
-
-- Row Level Security (RLS) with Supabase
-- Environment variable protection
-- API rate limiting
-- Input validation and sanitization
-
-## 📊 Monitoring
-
-### Health Checks
+### 接続テスト
 ```bash
-# Check all services
-make health
+# バックエンドヘルスチェック
+curl http://localhost:8000/health
 
-# View service status
-make status
+# フロントエンド確認
+curl http://localhost:5173/
 
-# Monitor logs
-make logs
+# Supabase接続テスト
+curl -H "apikey: YOUR_ANON_KEY" https://rvbapnvvyzxlhtsurqtg.supabase.co/rest/v1/
 ```
 
-### Performance
-- Bundle size monitoring
-- Database query optimization
-- Cache hit rate tracking
-- API response time monitoring
-
-## 🚢 Deployment
-
-### Production Build
+### Docker環境リセット
 ```bash
-# Build production images
-docker-compose -f docker-compose.prod.yml build
-
-# Deploy to staging
-docker-compose -f docker-compose.staging.yml up -d
-
-# Deploy to production
-docker-compose -f docker-compose.prod.yml up -d
-```
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create your feature branch
-3. Write tests for your changes
-4. Ensure all tests pass
-5. Submit a pull request
-
-## 📚 Documentation
-
-- [API Documentation](http://localhost:8000/docs) - Interactive API docs
-- [CLAUDE.md](./CLAUDE.md) - Detailed development guidelines
-- [Architecture Guide](./docs/architecture.md) - System architecture
-- [Testing Guide](./docs/testing.md) - Comprehensive testing strategy
-
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🆘 Troubleshooting
-
-### Common Issues
-
-#### Docker Issues
-```bash
-# Clean Docker resources
+# キャッシュクリア
 make clean
 
-# Reset entire environment  
-make clean-volumes  # WARNING: Deletes all data
-
-# Rebuild containers
-make build
+# 完全リセット
+make clean-volumes
 ```
 
-#### Database Issues
+## 📝 開発ガイドライン
+
+### TDD開発
+1. **Red**: テスト失敗を書く
+2. **Green**: 最小限のコードでテスト合格
+3. **Refactor**: コード品質向上
+
+### Docker-First開発
+- すべての開発作業はDockerコンテナ内で実行
+- ホストマシンでの`npm install`等は禁止
+- `make shell-frontend`、`make shell-backend`でコンテナ内作業
+
+### コード規約
+- TypeScript使用必須
+- React 18 Concurrent Features活用
+- MCP (Model Context Protocol) 利用推奨
+
+## 🌐 本番環境
+
+### デプロイ
+- **Vercel**: フロントエンドホスティング
+- **Vercel Functions**: バックエンドAPI
+- **Supabase**: データベース・認証
+
+### 環境変数
 ```bash
-# Reset database
-make db-reset
-
-# Check database connection
-make shell-db
-
-# View database logs
-make logs-db
+VITE_SUPABASE_PROD_URL=https://rvbapnvvyzxlhtsurqtg.supabase.co
+VITE_SUPABASE_PROD_ANON_KEY=your-production-key
 ```
 
-#### Port Conflicts
+## 📞 サポート
+
+### ヘルプ
 ```bash
-# Check which ports are in use
-lsof -i :5173  # Frontend
-lsof -i :8000  # Backend
-lsof -i :5432  # Database
-
-# Stop conflicting services
-make down
+make help  # 利用可能コマンド一覧
 ```
 
-### Getting Help
-- Check the [issues page](https://github.com/your-username/tokuteigino/issues)
-- Read the [troubleshooting guide](./docs/troubleshooting.md)
-- Contact the development team
+### ドキュメント
+- **技術詳細**: `CLAUDE.md`
+- **API仕様**: http://localhost:8000/docs
+- **Supabase**: https://supabase.com/docs
 
 ---
 
-**Made with ❤️ for foreign workers preparing for Japan's Specified Skills exam**
+**軽量Docker開発環境で効率的な開発を！** 🚀

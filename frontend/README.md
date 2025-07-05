@@ -21,30 +21,69 @@ This is the frontend application for TOKUTEI Learning (トクテイ ラーニン
 - 🌏 Multi-language support (Japanese, English, Chinese, Vietnamese)
 - 📱 Responsive design for all devices
 
-## Development
+## Development (Docker-First)
+
+**重要**: すべての開発作業はDockerコンテナ内で実行してください。
 
 ```bash
-# Install dependencies
+# Docker開発環境を起動
+make up
+
+# フロントエンドコンテナにアクセス
+make shell-frontend
+
+# コンテナ内で依存関係インストール
 npm install
 
-# Start development server
-npm run dev
+# 開発サーバー（コンテナで自動起動）
+# http://localhost:5173
 
-# Run tests with coverage
+# テスト実行（コンテナ内）
 npm run test:coverage
 
-# Build for production
+# 本番ビルド
 npm run build
 ```
 
-## Testing
+### Docker外での直接実行は禁止
+
+環境の一貫性を保つため、以下は禁止されています：
+- ホストマシンでの `npm install`
+- ホストマシンでの `npm run dev`
+- ホストマシンでの直接テスト実行
+
+### 軽量Docker環境
+
+- **メモリ制限**: 1GB (256MB予約)
+- **CPU制限**: 1.0コア (0.25コア予約)
+- **本番Supabase接続**: ローカルデータベース不要
+
+## Testing (Docker-Based)
 
 The project follows Test-Driven Development (TDD) principles with comprehensive test coverage:
 
-- Unit tests for business logic and utilities
-- Component tests with React Testing Library
-- Integration tests for API interactions
-- Current coverage: 60.82% (target: 80%+)
+### テスト種別
+- **Unit tests**: ビジネスロジックとユーティリティ
+- **Component tests**: React Testing Libraryでコンポーネントテスト
+- **Integration tests**: API連携テスト
+- **E2E tests**: Playwrightで本番環境テスト
+
+### テスト実行（Docker内）
+```bash
+# 軽量Docker環境でのテスト
+make test-frontend
+
+# E2Eテスト（本番Supabase接続）
+make test-e2e-prod-auth
+
+# カバレッジ付きテスト
+npm run test:coverage  # コンテナ内で実行
+```
+
+### モック認証テスト
+- テストモード: `?test=true` パラメータ
+- モックユーザー: 確認済み/未確認状態
+- 安全性: 本番データベース変更なし
 
 ## Expanding the ESLint configuration
 

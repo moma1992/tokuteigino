@@ -67,5 +67,6 @@
   },
   "[dockerfile]": {
     "editor.defaultFormatter": "ms-azuretools.vscode-docker"
-  }
+  },
+  "makefile.configureOnOpen": false
 }
